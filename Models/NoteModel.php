@@ -26,6 +26,7 @@ class NoteModel extends Database implements IModel
       FROM
         item
       INNER JOIN note ON item.id_item = note.id_item
+
       SQL;
   }
 
