@@ -7,6 +7,18 @@ class TagModel extends Database implements IModel
   public function getAll($args)
   {
     $limit = $args['limit'];
+    if (array_key_exists('search', $args)) {
+      $search = "%" . $args['search'] . "%";
+      $query = <<<SQL
+      SELECT * FROM tag
+      WHERE
+          name LIKE ?
+      ORDER BY name ASC LIMIT ?
+      SQL;
+
+      return $this->select($query, ["si", $search, $limit]);
+    }
+
     return $this->select("SELECT * FROM tag ORDER BY name ASC LIMIT ?", ["i", $limit]);
   }
 
