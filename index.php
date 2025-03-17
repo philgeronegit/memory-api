@@ -30,6 +30,20 @@ if (!$hasRoute) {
   exit();
 }
 
+$requestMethod = $_SERVER["REQUEST_METHOD"];
+
+$hasAdditionalSegment = isset($uri[4]);
+if ($hasAdditionalSegment) {
+  if ($uri[2] === 'note' and $uri[4] === 'comment' and $requestMethod === 'GET') {
+    $objController = new CommentController();
+    $args = array(
+    'id' => $uri[3]
+    );
+    $objController->listAction($args);
+    exit();
+  }
+}
+
 $objController = null;
 switch ($uri[2]) {
   case 'comment':
@@ -64,7 +78,6 @@ switch ($uri[2]) {
     exit();
 }
 
-$requestMethod = $_SERVER["REQUEST_METHOD"];
 if ($requestMethod === 'POST') {
   $prefix = 'add';
 } elseif ($requestMethod === 'PUT') {
