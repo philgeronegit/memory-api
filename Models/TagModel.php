@@ -4,9 +4,10 @@ require_once PROJECT_ROOT_PATH . "/Models/IModel.php";
 
 class TagModel extends Database implements IModel
 {
-  public function getAll($limit)
+  public function getAll(...$params)
   {
-    return $this->select("SELECT * FROM tag ORDER BY id_tag ASC LIMIT ?", ["i", $limit]);
+    $limit = $params[0];
+    return $this->select("SELECT * FROM tag ORDER BY name ASC LIMIT ?", ["i", $limit]);
   }
 
   public function getOne($id)
@@ -22,10 +23,16 @@ class TagModel extends Database implements IModel
   public function add($paramsArray)
   {
     $name = $paramsArray['name'];
-    return $this->insert(
+    $id = $this->insert(
       "INSERT INTO tag (name) VALUES (?)",
       ["s", $name]
     );
+
+    $query = <<<SQL
+    SELECT * FROM tag
+    WHERE id_tag = ?
+    SQL;
+    return $this->selectOne($query, ["i", $id]);
   }
 
   public function modify($paramsArray)
