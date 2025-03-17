@@ -41,11 +41,23 @@ switch ($uri[2]) {
   case 'note':
     $objController = new NoteController();
     break;
-  case 'tag':
-    $objController = new TagController();
+  case 'programming-language':
+    $objController = new ProgrammingLanguageController();
     break;
   case 'project':
     $objController = new ProjectController();
+    break;
+  case 'role':
+    $objController = new RoleController();
+    break;
+  case 'tag':
+    $objController = new TagController();
+    break;
+  case 'task':
+    $objController = new TaskController();
+    break;
+  case 'technical-skill':
+    $objController = new TechnicalSkillController();
     break;
   default:
     header("HTTP/1.1 404 Not Found");

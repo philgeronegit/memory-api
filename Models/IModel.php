@@ -1,6 +1,6 @@
 <?php
 interface IModel {
-  public function getAll($limit);
+  public function getAll(...$params);
   public function getOne($id);
   public function remove($id);
   public function add($paramsArray);

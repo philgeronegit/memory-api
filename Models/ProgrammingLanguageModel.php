@@ -2,10 +2,11 @@
 require_once PROJECT_ROOT_PATH . "/Models/Database.php";
 require_once PROJECT_ROOT_PATH . "/Models/IModel.php";
 
-class ProgrammationModel extends Database implements IModel
+class ProgrammingLanguageModel extends Database implements IModel
 {
-  public function getAll($limit)
+  public function getAll(...$params)
   {
+    $limit = $params[0];
     return $this->select("SELECT * FROM programming_language ORDER BY id_programming_language ASC LIMIT ?", ["i", $limit]);
   }
 

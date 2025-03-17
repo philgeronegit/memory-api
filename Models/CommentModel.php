@@ -4,24 +4,48 @@ require_once PROJECT_ROOT_PATH . "/Models/IModel.php";
 
 class CommentModel extends Database implements IModel
 {
-  public function getAll($limit)
+  private $baseQuery;
+
+  public function __construct()
   {
-    $query = <<<SQL
-    SELECT
-        c.id_comment,
-        c.content,
-        c.created_at,
-        c.updated_at,
-        users.username,
-        users.email
-    FROM
-        comment AS c
-            INNER JOIN
-        note ON note.id_item = c.id_item
-            INNER JOIN
-        users ON users.id_developer = note.id_developer
-        ORDER BY id_comment ASC LIMIT ?
+    parent::__construct();
+
+    $this->baseQuery = <<<SQL
+      SELECT
+          c.id_comment,
+          c.content,
+          c.created_at,
+          c.updated_at,
+          users.username,
+          users.email
+      FROM
+          comment AS c
+      INNER JOIN
+          note ON note.id_item = c.id_item
+      INNER JOIN
+          users ON users.id_developer = note.id_developer
+
+      SQL;
+  }
+
+  public function getAll(...$params)
+  {
+    $limit = $params[0];
+    $id = $params[1];
+    if ($id != null) {
+      $query = $this->baseQuery . <<<SQL
+      WHERE
+          c.id_item = ?
+      ORDER BY id_comment ASC LIMIT ?
+      SQL;
+
+      return $this->select($query, ["ii", $id, $limit]);
+    }
+
+    $query = $this->baseQuery . <<<SQL
+    ORDER BY id_comment ASC LIMIT ?
     SQL;
+
     return $this->select($query, ["i", $limit]);
   }
 

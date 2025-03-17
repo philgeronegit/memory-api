@@ -108,7 +108,8 @@ class BaseController
   {
     $this->doAction($fn = function () {
       $intLimit = $this->getQueryString('limit', 10);
-      return $this->model->getAll($intLimit);
+      $id = $this->getQueryString('id', null);
+      return $this->model->getAll($intLimit, $id);
     });
   }
 
