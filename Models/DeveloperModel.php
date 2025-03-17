@@ -12,7 +12,7 @@ class DeveloperModel extends Database implements IModel
 
     $this->baseQuery = <<<SQL
       SELECT
-          developer.id_developer,
+          developer.id_users,
           users.username,
           users.email,
           users.avatar_url,
@@ -22,16 +22,16 @@ class DeveloperModel extends Database implements IModel
       FROM
           users
       JOIN
-          developer ON users.id_developer = developer.id_developer
+          developer ON users.id_users = developer.id_users
       JOIN
           role ON users.id_role = role.id_role
 
       SQL;
   }
 
-  public function getAll(...$params)
+  public function getAll($args)
   {
-    $limit = $params[0];
+    $limit = $args['limit'];
     $query = $this->baseQuery . <<<SQL
     ORDER BY username ASC
     LIMIT ?
@@ -42,14 +42,14 @@ class DeveloperModel extends Database implements IModel
 
   public function getOne($id)
   {
-    $query = $this->baseQuery . " WHERE developer.id_developer = ?";
+    $query = $this->baseQuery . " WHERE developer.id_users = ?";
 
     return $this->selectOne($query, ["i", $id]);
   }
 
   public function remove($id)
   {
-    return $this->delete("DELETE FROM developer WHERE id_developer = ?", ["i", $id]);
+    return $this->delete("DELETE FROM developer WHERE id_users = ?", ["i", $id]);
   }
 
   public function add($paramsArray)
@@ -69,7 +69,7 @@ class DeveloperModel extends Database implements IModel
     $name = $paramsArray['name'];
     $email = $paramsArray['email'];
     return $this->update(
-      "UPDATE developer SET username = ?, email = ? WHERE id_developer = ?",
+      "UPDATE developer SET username = ?, email = ? WHERE id_users = ?",
       ["ssi", $name, $email, $id]
     );
   }

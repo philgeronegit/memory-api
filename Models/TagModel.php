@@ -4,9 +4,9 @@ require_once PROJECT_ROOT_PATH . "/Models/IModel.php";
 
 class TagModel extends Database implements IModel
 {
-  public function getAll(...$params)
+  public function getAll($args)
   {
-    $limit = $params[0];
+    $limit = $args['limit'];
     return $this->select("SELECT * FROM tag ORDER BY name ASC LIMIT ?", ["i", $limit]);
   }
 

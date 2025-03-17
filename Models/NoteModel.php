@@ -22,7 +22,7 @@ class NoteModel extends Database implements IModel
         item.archived_at,
         note.id_programming_language,
         note.id_project,
-        note.id_developer
+        note.id_users
       FROM
         item
       INNER JOIN note ON item.id_item = note.id_item
@@ -30,9 +30,20 @@ class NoteModel extends Database implements IModel
       SQL;
   }
 
-  public function getAll(...$params)
+  public function getAll($args)
   {
-    $limit = $params[0];
+    $limit = $args['limit'];
+    if (array_key_exists('search', $args)) {
+      $search = "%" . $args['search'] . "%";
+      $query = $this->baseQuery . <<<SQL
+      WHERE
+          title LIKE ? OR description LIKE ?
+      ORDER BY id_note ASC LIMIT ?
+      SQL;
+
+      return $this->select($query, ["ssi", $search, $search, $limit]);
+    }
+
     $query = $this->baseQuery . <<<SQL
     ORDER BY id_note ASC
     LIMIT ?
@@ -58,7 +69,7 @@ class NoteModel extends Database implements IModel
     $title = $paramsArray['title'];
     $content = $paramsArray['content'];
     $type = $paramsArray['type'];
-    $id_developer = $paramsArray['id_developer'];
+    $id_users = $paramsArray['id_users'];
     $id_programming_language = $paramsArray['id_programming_language'];
     $now = date('Y-m-d H:i:s');
     $item_id = $this->insert(
@@ -66,7 +77,7 @@ class NoteModel extends Database implements IModel
       ["sss", $title, $content, $now]
     );
     $lastInsertId = $this->insert(
-      "INSERT INTO note (id_item, type, id_developer, id_programming_language) VALUES (?, ?, ?, ?)",
+      "INSERT INTO note (id_item, type, id_users, id_programming_language) VALUES (?, ?, ?, ?)",
       ["isii", $item_id, $type, 1, 1]
     );
     print($lastInsertId);

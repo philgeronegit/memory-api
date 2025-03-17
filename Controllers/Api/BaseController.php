@@ -66,7 +66,7 @@ class BaseController
     exit;
   }
 
-  protected function getQueryString($name, $default = 1)
+  protected function getQueryString($name, $default = null)
   {
     $arrQueryStringParams = $this->getQueryStringParams();
     $query_string = $default;
@@ -77,14 +77,14 @@ class BaseController
     return $query_string;
   }
 
-  protected function doAction($fn)
+  protected function doAction($fn, $args = [])
   {
     $strErrorDesc = '';
     $requestMethod = $_SERVER["REQUEST_METHOD"];
     $arrQueryStringParams = $this->getQueryStringParams();
 
     try {
-      $res = $fn();
+      $res = $fn($args);
       $responseData = json_encode($res);
     } catch (Error $e) {
       $strErrorDesc = $e->getMessage() . 'Something went wrong! Please contact support.';
@@ -104,13 +104,19 @@ class BaseController
     }
   }
 
-  public function listAction()
+  public function listAction($args = [])
   {
-    $this->doAction($fn = function () {
+    $this->doAction($fn = function ($args) {
       $intLimit = $this->getQueryString('limit', 10);
-      $id = $this->getQueryString('id', null);
-      return $this->model->getAll($intLimit, $id);
-    });
+      $args['limit'] = $intLimit;
+
+      $search = $this->getQueryString('search');
+      if ($search) {
+        $args['search'] = $search;
+      }
+
+      return $this->model->getAll($args);
+    }, $args);
   }
 
   public function removeAction(): void

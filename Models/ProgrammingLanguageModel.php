@@ -4,9 +4,9 @@ require_once PROJECT_ROOT_PATH . "/Models/IModel.php";
 
 class ProgrammingLanguageModel extends Database implements IModel
 {
-  public function getAll(...$params)
+  public function getAll($args)
   {
-    $limit = $params[0];
+    $limit = $args['limit'];
     return $this->select("SELECT * FROM programming_language ORDER BY id_programming_language ASC LIMIT ?", ["i", $limit]);
   }
 

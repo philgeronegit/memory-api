@@ -23,16 +23,16 @@ class CommentModel extends Database implements IModel
       INNER JOIN
           note ON note.id_item = c.id_item
       INNER JOIN
-          users ON users.id_developer = note.id_developer
+          users ON users.id_users = note.id_users
 
       SQL;
   }
 
-  public function getAll(...$params)
+  public function getAll($args)
   {
-    $limit = $params[0];
-    $id = $params[1];
-    if ($id != null) {
+    $limit = $args['limit'];
+    if (array_key_exists('id', $args)) {
+      $id = $args['id'];
       $query = $this->baseQuery . <<<SQL
       WHERE
           c.id_item = ?
