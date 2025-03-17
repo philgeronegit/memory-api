@@ -4,9 +4,10 @@ require_once PROJECT_ROOT_PATH . "/Models/IModel.php";
 
 class ProjectModel extends Database implements IModel
 {
-  public function getAll($limit)
+  public function getAll(...$params)
   {
-    return $this->select("SELECT * FROM project ORDER BY id_project ASC LIMIT ?", ["i", $limit]);
+    $limit = $params[0];
+    return $this->select("SELECT * FROM project ORDER BY name ASC LIMIT ?", ["i", $limit]);
   }
 
   public function getOne($id)

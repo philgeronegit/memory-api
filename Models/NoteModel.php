@@ -30,8 +30,9 @@ class NoteModel extends Database implements IModel
       SQL;
   }
 
-  public function getAll($limit)
+  public function getAll(...$params)
   {
+    $limit = $params[0];
     $query = $this->baseQuery . <<<SQL
     ORDER BY id_note ASC
     LIMIT ?
