@@ -4,14 +4,47 @@ require_once PROJECT_ROOT_PATH . "/Models/IModel.php";
 
 class DeveloperModel extends Database implements IModel
 {
-  public function getAll($limit)
+  private $baseQuery;
+
+  public function __construct()
   {
-    return $this->select("SELECT * FROM developer ORDER BY id_developer ASC LIMIT ?", ["i", $limit]);
+    parent::__construct();
+
+    $this->baseQuery = <<<SQL
+      SELECT
+          developer.id_developer,
+          users.username,
+          users.email,
+          users.avatar_url,
+          users.created_at,
+          users.is_admin,
+          role.name AS role
+      FROM
+          users
+      JOIN
+          developer ON users.id_developer = developer.id_developer
+      JOIN
+          role ON users.id_role = role.id_role
+
+      SQL;
+  }
+
+  public function getAll(...$params)
+  {
+    $limit = $params[0];
+    $query = $this->baseQuery . <<<SQL
+    ORDER BY username ASC
+    LIMIT ?
+    SQL;
+
+    return $this->select($query, ["i", $limit]);
   }
 
   public function getOne($id)
   {
-    return $this->selectOne("SELECT * FROM developer WHERE id_developer = ?", ["i", $id]);
+    $query = $this->baseQuery . " WHERE developer.id_developer = ?";
+
+    return $this->selectOne($query, ["i", $id]);
   }
 
   public function remove($id)
