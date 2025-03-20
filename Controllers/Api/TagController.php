@@ -14,4 +14,18 @@ class TagController extends BaseController
       return $this->model->add(array('name' => $name));
     });
   }
+
+  public function updateAction(): void
+  {
+    $this->doAction($fn = function () {
+      $id = $this->getQueryString('id');
+      $name = $this->getRequestBody('name');
+      return $this->model->modify(
+        array(
+          'id' => $id,
+          'name' => $name
+        )
+      );
+    });
+  }
 }
