@@ -51,7 +51,9 @@ class CommentModel extends Database implements IModel
 
   public function getOne($id)
   {
-    return $this->select("SELECT * FROM comment WHERE id_comment = ?", ["i", $id]);
+    $query = $this->baseQuery . " WHERE id_comment = ?";
+
+    return $this->selectOne($query, ["i", $id]);
   }
 
   public function remove($id)
@@ -62,19 +64,28 @@ class CommentModel extends Database implements IModel
   public function add($paramsArray)
   {
     $content = $paramsArray['content'];
-    return $this->insert(
-      "INSERT INTO comment (content, created_at) VALUES (?, ?)",
-      ["ss", $content, current_time()]
+    $id_developer = $paramsArray['id_developer'];
+    $id_item = $paramsArray['id_item'];
+    $now = date('Y-m-d H:i:s');
+    $id = $this->insert(
+      "INSERT INTO comment (content, created_at,id_developer, id_item) VALUES (?, ?, ?, ?)",
+      ["ssii", $content, $now, $id_developer, $id_item]
     );
+
+    $query = $this->baseQuery . <<<SQL
+    WHERE id_comment = ?
+    SQL;
+    return $this->selectOne($query, ["i", $id]);
   }
 
   public function modify($paramsArray)
   {
     $id = $paramsArray['id'];
     $content = $paramsArray['content'];
+    $now = date('Y-m-d H:i:s');
     return $this->update(
-      "UPDATE comment SET content = ? WHERE id_comment = ?",
-      ["si", $content, $id]
+      "UPDATE comment SET content = ?, updated_at = ? WHERE id_comment = ?",
+      ["ssi", $content, $now, $id]
     );
   }
 }
