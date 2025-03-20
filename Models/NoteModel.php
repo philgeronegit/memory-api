@@ -80,9 +80,8 @@ class NoteModel extends Database implements IModel
       "INSERT INTO note (id_item, type, id_users, id_programming_language) VALUES (?, ?, ?, ?)",
       ["isii", $item_id, $type, 1, 1]
     );
-    print($lastInsertId);
 
-    $query = $this->$baseQuery . <<<SQL
+    $query = $this->baseQuery . <<<SQL
     WHERE item.id_item = ?
     SQL;
     return $this->selectOne($query, ["i", $lastInsertId]);
@@ -93,10 +92,14 @@ class NoteModel extends Database implements IModel
     $id = $paramsArray['id'];
     $title = $paramsArray['title'];
     $content = $paramsArray['content'];
-    $type = $paramsArray['type'];
-    return $this->update(
-      'UPDATE note SET title = ?, content = ?, type = ? WHERE id_note = ?',
-      ["sssi", $title, $content, $type, $id]
+    $this->update(
+      'UPDATE item SET title = ?, description = ? WHERE id_item = ?',
+      ["ssi", $title, $content, $id]
     );
+
+    $query = $this->baseQuery . <<<SQL
+    WHERE item.id_item = ?
+    SQL;
+    return $this->selectOne($query, ["i", $id]);
   }
 }
