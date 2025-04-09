@@ -10,8 +10,8 @@ class LoginModel extends Database
     $password = $paramsArray['password'];
 
     $query = <<<SQL
-    SELECT id_users, username, password
-    FROM users
+    SELECT id_user, username, password
+    FROM user
     WHERE username = ? AND password = ?
     SQL;
 
