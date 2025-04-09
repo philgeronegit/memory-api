@@ -46,7 +46,7 @@ class BaseController
   protected function getRequestBody($name)
   {
     $data = json_decode(file_get_contents('php://input'), true);
-    return $data[$name];
+    return isset($data[$name]) ? $data[$name] : null;
   }
 
   /**
@@ -107,7 +107,7 @@ class BaseController
   public function listAction($args = [])
   {
     $this->doAction($fn = function ($args) {
-      $intLimit = $this->getQueryString('limit', 10);
+      $intLimit = $this->getQueryString('limit', 50);
       $args['limit'] = $intLimit;
 
       $search = $this->getQueryString('search');
