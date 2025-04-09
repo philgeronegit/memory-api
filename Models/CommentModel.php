@@ -16,14 +16,14 @@ class CommentModel extends Database implements IModel
           c.content,
           c.created_at,
           c.updated_at,
-          users.username,
-          users.email
+          user.username,
+          user.email
       FROM
           comment AS c
       INNER JOIN
           note ON note.id_item = c.id_item
       INNER JOIN
-          users ON users.id_users = note.id_users
+          user ON user.id_user = note.id_user
 
       SQL;
   }
@@ -64,12 +64,12 @@ class CommentModel extends Database implements IModel
   public function add($paramsArray)
   {
     $content = $paramsArray['content'];
-    $id_developer = $paramsArray['id_developer'];
+    $id_user = $paramsArray['id_user'];
     $id_item = $paramsArray['id_item'];
     $now = date('Y-m-d H:i:s');
     $id = $this->insert(
-      "INSERT INTO comment (content, created_at,id_developer, id_item) VALUES (?, ?, ?, ?)",
-      ["ssii", $content, $now, $id_developer, $id_item]
+      "INSERT INTO comment (content, created_at,id_user, id_item) VALUES (?, ?, ?, ?)",
+      ["ssii", $content, $now, $id_user, $id_item]
     );
 
     $query = $this->baseQuery . <<<SQL

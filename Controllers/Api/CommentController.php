@@ -11,11 +11,11 @@ class CommentController extends BaseController
     $this->doAction($fn = function () {
 
       $content = $this->getRequestBody('content');
-      $id_developer = $this->getRequestBody('id_developer');
+      $id_user = $this->getRequestBody('id_user');
       $id_item = $this->getRequestBody('id_item');
       return $this->model->add(array(
         'content' => $content,
-        'id_developer' => $id_developer,
+        'id_user' => $id_user,
         'id_item' => $id_item
       ));
     });
@@ -24,7 +24,7 @@ class CommentController extends BaseController
   public function updateAction(): void
   {
     $this->doAction($fn = function () {
-      $id = $this->getQueryString('id');
+      $id = $this->getUriSegments()[3];
       $content = $this->getRequestBody('content');
       return $this->model->modify(
         array(
