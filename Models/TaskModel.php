@@ -4,20 +4,64 @@ require_once PROJECT_ROOT_PATH . "/Models/IModel.php";
 
 class TaskModel extends Database implements IModel
 {
+  private $baseQuery;
+
+  public function __construct()
+  {
+    parent::__construct();
+
+    $this->baseQuery = <<<SQL
+      SELECT
+          task.id_item,
+          title,
+          description,
+          created_at,
+          updated_at,
+          archived_at,
+          status.id_status,
+          name AS status,
+          due_at,
+          done_at,
+          priority,
+          id_project,
+          id_executive,
+          id_developer
+      FROM
+          task
+              JOIN
+          item ON item.id_item = task.id_item
+              JOIN
+          status ON status.id_status = task.id_status
+
+      SQL;
+  }
+
   public function getAll($args)
   {
     $limit = $args['limit'];
-    return $this->select("SELECT * FROM task ORDER BY id_item ASC LIMIT ?", ["i", $limit]);
+
+    $query = $this->baseQuery . <<<SQL
+    ORDER BY
+      CASE
+        WHEN updated_at IS NOT NULL THEN updated_at
+        ELSE created_at
+      END ASC
+    LIMIT ?
+    SQL;
+
+    return $this->select($query, ["i", $limit]);
   }
 
   public function getOne($id)
   {
-    return $this->selectOne("SELECT * FROM task WHERE id_item = ?", ["i", $id]);
+    $query = $this->baseQuery . " WHERE task.id_item = ?";
+
+    return $this->selectOne($query, ["i", $id]);
   }
 
   public function remove($id)
   {
-    return $this->delete("DELETE FROM task WHERE id_item = ?", ["i", $id]);
+    return $this->delete("DELETE FROM task WHERE task.id_item = ?", ["i", $id]);
   }
 
   public function add($paramsArray)
@@ -32,10 +76,26 @@ class TaskModel extends Database implements IModel
   public function modify($paramsArray)
   {
     $id = $paramsArray['id'];
-    $name = $paramsArray['name'];
-    return $this->update(
-      "UPDATE task SET name = ? WHERE id_item = ?",
-      ["si", $name, $id]
+
+    $query = $this->baseQuery . <<<SQL
+    WHERE item.id_item = ?
+    SQL;
+    $task = $this->selectOne($query, ["i", $id]);
+
+    $title = $paramsArray['title'] ?? $task->title;
+    $description = $paramsArray['description'] ?? $task->description;
+    $id_status = $paramsArray['id_status'] ?? $task->id_status;
+
+    $this->update(
+      "UPDATE item SET title = ?, description = ? WHERE item.id_item = ?",
+      ["ssi", $title, $description, $id]
     );
+
+    $this->update(
+      "UPDATE task SET id_status = ? WHERE task.id_item = ?",
+      ["ii", $id_status, $id]
+    );
+
+    return $this->selectOne($query, ["i", $id]);
   }
 }
