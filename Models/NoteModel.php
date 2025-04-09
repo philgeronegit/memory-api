@@ -22,17 +22,28 @@ class NoteModel extends Database implements IModel
         item.archived_at,
         note.id_programming_language,
         note.id_project,
-        note.id_developer
+        note.id_user
       FROM
         item
-      INNER JOIN note ON item.id_item = note.id_item
+      JOIN note ON note.id_item = item.id_item
 
       SQL;
   }
 
-  public function getAll(...$params)
+  public function getAll($args)
   {
-    $limit = $params[0];
+    $limit = $args['limit'];
+    if (array_key_exists('search', $args)) {
+      $search = "%" . $args['search'] . "%";
+      $query = $this->baseQuery . <<<SQL
+      WHERE
+          title LIKE ? OR description LIKE ?
+      ORDER BY id_note ASC LIMIT ?
+      SQL;
+
+      return $this->select($query, ["ssi", $search, $search, $limit]);
+    }
+
     $query = $this->baseQuery . <<<SQL
     ORDER BY id_note ASC
     LIMIT ?
@@ -58,34 +69,48 @@ class NoteModel extends Database implements IModel
     $title = $paramsArray['title'];
     $content = $paramsArray['content'];
     $type = $paramsArray['type'];
-    $id_developer = $paramsArray['id_developer'];
+    $id_user = $paramsArray['id_user'];
+    $id_project = $paramsArray['id_project'];
+    $is_public = $paramsArray['is_public'];
     $id_programming_language = $paramsArray['id_programming_language'];
     $now = date('Y-m-d H:i:s');
     $item_id = $this->insert(
       "INSERT INTO item (title, description, created_at) VALUES (?, ?, ?)",
       ["sss", $title, $content, $now]
     );
-    $lastInsertId = $this->insert(
-      "INSERT INTO note (id_item, type, id_developer, id_programming_language) VALUES (?, ?, ?, ?)",
-      ["isii", $item_id, $type, 1, 1]
+    $this->insert(
+      "INSERT INTO note (id_item, type, is_public, id_user, id_project, id_programming_language) VALUES (?, ?, ?, ?, ?, ?)",
+      ["isiiii", $item_id, $type, $is_public, $id_user, $id_project, $id_programming_language]
     );
-    print($lastInsertId);
 
-    $query = $this->$baseQuery . <<<SQL
+    $query = $this->baseQuery . <<<SQL
     WHERE item.id_item = ?
     SQL;
-    return $this->selectOne($query, ["i", $lastInsertId]);
+    return $this->selectOne($query, ["i", $item_id]);
   }
 
   public function modify($paramsArray)
   {
     $id = $paramsArray['id'];
-    $title = $paramsArray['title'];
-    $content = $paramsArray['content'];
-    $type = $paramsArray['type'];
-    return $this->update(
-      'UPDATE note SET title = ?, content = ?, type = ? WHERE id_note = ?',
-      ["sssi", $title, $content, $type, $id]
+
+    $query = $this->baseQuery . <<<SQL
+    WHERE item.id_item = ?
+    SQL;
+    $note = $this->selectOne($query, ["i", $id]);
+
+    $title = $paramsArray['title'] ?? $note->title;
+    $content = $paramsArray['content'] ?? $note->content;
+    $is_public = $paramsArray['is_public'] ?? $note->is_public;
+
+    $this->update(
+      'UPDATE item SET title = ?, description = ? WHERE id_item = ?',
+      ["ssi", $title, $content, $id]
     );
+    $this->update(
+      'UPDATE note SET is_public = ? WHERE id_item = ?',
+      ["ii", $is_public, $id]
+    );
+
+    return $this->selectOne($query, ["i", $id]);
   }
 }

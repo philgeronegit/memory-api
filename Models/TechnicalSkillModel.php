@@ -4,9 +4,9 @@ require_once PROJECT_ROOT_PATH . "/Models/IModel.php";
 
 class TechnicalSkillModel extends Database implements IModel
 {
-  public function getAll(...$params)
+  public function getAll($args)
   {
-    $limit = $params[0];
+    $limit = $args['limit'];
     $id = $params[1];
     if ($id != null) {
       $query = <<<SQL

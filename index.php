@@ -9,7 +9,7 @@ header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     header("Access-Control-Allow-Origin: *");
-    header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+    header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
     header("Access-Control-Allow-Headers: Content-Type, Authorization");
     exit(0);
 }
@@ -30,8 +30,43 @@ if (!$hasRoute) {
   exit();
 }
 
+$requestMethod = $_SERVER["REQUEST_METHOD"];
+
+$hasAdditionalSegment = isset($uri[4]);
+if ($hasAdditionalSegment) {
+  if ($uri[2] === 'note' and $uri[4] === 'comment' and $requestMethod === 'GET') {
+    $objController = new CommentController();
+    $args = array(
+      'id' => $uri[3]
+    );
+    $objController->listAction($args);
+    exit();
+  }
+  if ($uri[2] === 'note' and $uri[4] === 'tag' and $requestMethod === 'GET') {
+    $objController = new TagController();
+    $args = array(
+      'id' => $uri[3]
+    );
+    $objController->listAction($args);
+    exit();
+  }
+  if ($uri[2] === 'note' and $uri[4] === 'tag' and $requestMethod === 'POST') {
+    $objController = new TagController();
+    $objController->addTagToNote();
+    exit();
+  }
+  if ($uri[2] === 'note' and $uri[4] === 'tag' and $requestMethod === 'DELETE') {
+    $objController = new TagController();
+    $objController->removeTagToNote();
+    exit();
+  }
+}
+
 $objController = null;
 switch ($uri[2]) {
+  case 'login':
+    $objController = new LoginController();
+    break;
   case 'comment':
     $objController = new CommentController();
     break;
@@ -64,7 +99,6 @@ switch ($uri[2]) {
     exit();
 }
 
-$requestMethod = $_SERVER["REQUEST_METHOD"];
 if ($requestMethod === 'POST') {
   $prefix = 'add';
 } elseif ($requestMethod === 'PUT') {

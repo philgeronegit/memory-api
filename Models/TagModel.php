@@ -4,9 +4,34 @@ require_once PROJECT_ROOT_PATH . "/Models/IModel.php";
 
 class TagModel extends Database implements IModel
 {
-  public function getAll(...$params)
+  public function getAll($args)
   {
-    $limit = $params[0];
+    $limit = $args['limit'];
+    if (array_key_exists('id', $args)) {
+      $id = $args['id'];
+      $query = <<<SQL
+      SELECT tag.id_tag, tag.name
+      FROM tag
+      INNER JOIN tags ON tag.id_tag = tags.id_tag
+      WHERE tags.id_item = ?
+      ORDER BY tag.name ASC LIMIT ?
+      SQL;
+
+      return $this->select($query, ["ii", $id, $limit]);
+    }
+
+    if (array_key_exists('search', $args)) {
+      $search = "%" . $args['search'] . "%";
+      $query = <<<SQL
+      SELECT * FROM tag
+      WHERE
+          name LIKE ?
+      ORDER BY name ASC LIMIT ?
+      SQL;
+
+      return $this->select($query, ["si", $search, $limit]);
+    }
+
     return $this->select("SELECT * FROM tag ORDER BY name ASC LIMIT ?", ["i", $limit]);
   }
 
@@ -18,6 +43,16 @@ class TagModel extends Database implements IModel
   public function remove($id)
   {
     return $this->delete("DELETE FROM tag WHERE id_tag = ?", ["i", $id]);
+  }
+
+  public function removeToNote($paramsArray)
+  {
+    $note_id = $paramsArray['note_id'];
+    $tag_id = $paramsArray['tag_id'];
+    return $this->delete(
+      "DELETE FROM tags WHERE id_tag = ? AND id_item = ?",
+      ["ii", $tag_id, $note_id]
+    );
   }
 
   public function add($paramsArray)
@@ -33,6 +68,16 @@ class TagModel extends Database implements IModel
     WHERE id_tag = ?
     SQL;
     return $this->selectOne($query, ["i", $id]);
+  }
+
+  public function addToNote($paramsArray)
+  {
+    $note_id = $paramsArray['note_id'];
+    $tag_id = $paramsArray['tag_id'];
+    return $this->insert(
+      "INSERT INTO tags (id_tag, id_item) VALUES (?, ?)",
+      ["ii", $tag_id, $note_id]
+    );
   }
 
   public function modify($paramsArray)

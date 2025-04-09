@@ -16,23 +16,23 @@ class CommentModel extends Database implements IModel
           c.content,
           c.created_at,
           c.updated_at,
-          users.username,
-          users.email
+          user.username,
+          user.email
       FROM
           comment AS c
       INNER JOIN
           note ON note.id_item = c.id_item
       INNER JOIN
-          users ON users.id_developer = note.id_developer
+          user ON user.id_user = note.id_user
 
       SQL;
   }
 
-  public function getAll(...$params)
+  public function getAll($args)
   {
-    $limit = $params[0];
-    $id = $params[1];
-    if ($id != null) {
+    $limit = $args['limit'];
+    if (array_key_exists('id', $args)) {
+      $id = $args['id'];
       $query = $this->baseQuery . <<<SQL
       WHERE
           c.id_item = ?
@@ -51,7 +51,9 @@ class CommentModel extends Database implements IModel
 
   public function getOne($id)
   {
-    return $this->select("SELECT * FROM comment WHERE id_comment = ?", ["i", $id]);
+    $query = $this->baseQuery . " WHERE id_comment = ?";
+
+    return $this->selectOne($query, ["i", $id]);
   }
 
   public function remove($id)
@@ -62,19 +64,28 @@ class CommentModel extends Database implements IModel
   public function add($paramsArray)
   {
     $content = $paramsArray['content'];
-    return $this->insert(
-      "INSERT INTO comment (content, created_at) VALUES (?, ?)",
-      ["ss", $content, current_time()]
+    $id_user = $paramsArray['id_user'];
+    $id_item = $paramsArray['id_item'];
+    $now = date('Y-m-d H:i:s');
+    $id = $this->insert(
+      "INSERT INTO comment (content, created_at,id_user, id_item) VALUES (?, ?, ?, ?)",
+      ["ssii", $content, $now, $id_user, $id_item]
     );
+
+    $query = $this->baseQuery . <<<SQL
+    WHERE id_comment = ?
+    SQL;
+    return $this->selectOne($query, ["i", $id]);
   }
 
   public function modify($paramsArray)
   {
     $id = $paramsArray['id'];
     $content = $paramsArray['content'];
+    $now = date('Y-m-d H:i:s');
     return $this->update(
-      "UPDATE comment SET content = ? WHERE id_comment = ?",
-      ["si", $content, $id]
+      "UPDATE comment SET content = ?, updated_at = ? WHERE id_comment = ?",
+      ["ssi", $content, $now, $id]
     );
   }
 }
