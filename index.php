@@ -37,7 +37,7 @@ if ($hasAdditionalSegment) {
   if ($uri[2] === 'note' and $uri[4] === 'comment' and $requestMethod === 'GET') {
     $objController = new CommentController();
     $args = array(
-    'id' => $uri[3]
+      'id' => $uri[3]
     );
     $objController->listAction($args);
     exit();
@@ -45,9 +45,19 @@ if ($hasAdditionalSegment) {
   if ($uri[2] === 'note' and $uri[4] === 'tag' and $requestMethod === 'GET') {
     $objController = new TagController();
     $args = array(
-    'id' => $uri[3]
+      'id' => $uri[3]
     );
     $objController->listAction($args);
+    exit();
+  }
+  if ($uri[2] === 'note' and $uri[4] === 'tag' and $requestMethod === 'POST') {
+    $objController = new TagController();
+    $objController->addTagToNote();
+    exit();
+  }
+  if ($uri[2] === 'note' and $uri[4] === 'tag' and $requestMethod === 'DELETE') {
+    $objController = new TagController();
+    $objController->removeTagToNote();
     exit();
   }
 }
