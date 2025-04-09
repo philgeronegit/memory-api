@@ -11,16 +11,17 @@ class NoteController extends BaseController
     $this->doAction($fn = function () {
       $title = $this->getRequestBody('title');
       $content = $this->getRequestBody('content');
-      $id_users = $this->getRequestBody('id_users');
+      $type = $this->getRequestBody('type');
+      $id_user = $this->getRequestBody('id_user');
+      $id_project = $this->getRequestBody('id_project');
       $is_public = $this->getRequestBody('is_public');
       $id_programming_language = $this->getRequestBody('id_programming_language');
-      $id_project = $this->getRequestBody('id_project');
       return $this->model->add(
         array(
           'title' => $title,
           'content' => $content,
-          'type' => 'text',
-          'id_users' => $id_users,
+          'type' => $type,
+          'id_user' => $id_user,
           'is_public' => $is_public,
           'id_programming_language' => $id_programming_language,
           'id_project' => $id_project
@@ -32,14 +33,16 @@ class NoteController extends BaseController
   public function updateAction(): void
   {
     $this->doAction($fn = function () {
-      $id = $this->getRequestBody('id');
+      $id = $this->getUriSegments()[3];
       $title = $this->getRequestBody('title');
       $content = $this->getRequestBody('content');
+      $is_public = $this->getRequestBody('is_public');
       return $this->model->modify(
         array(
           'id' => $id,
           'title' => $title,
-          'content' => $content
+          'content' => $content,
+          'is_public' => $is_public
         )
       );
     });

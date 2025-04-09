@@ -22,10 +22,10 @@ class NoteModel extends Database implements IModel
         item.archived_at,
         note.id_programming_language,
         note.id_project,
-        note.id_users
+        note.id_user
       FROM
         item
-      INNER JOIN note ON item.id_item = note.id_item
+      JOIN note ON note.id_item = item.id_item
 
       SQL;
   }
@@ -69,37 +69,48 @@ class NoteModel extends Database implements IModel
     $title = $paramsArray['title'];
     $content = $paramsArray['content'];
     $type = $paramsArray['type'];
-    $id_users = $paramsArray['id_users'];
+    $id_user = $paramsArray['id_user'];
+    $id_project = $paramsArray['id_project'];
+    $is_public = $paramsArray['is_public'];
     $id_programming_language = $paramsArray['id_programming_language'];
     $now = date('Y-m-d H:i:s');
     $item_id = $this->insert(
       "INSERT INTO item (title, description, created_at) VALUES (?, ?, ?)",
       ["sss", $title, $content, $now]
     );
-    $lastInsertId = $this->insert(
-      "INSERT INTO note (id_item, type, id_users, id_programming_language) VALUES (?, ?, ?, ?)",
-      ["isii", $item_id, $type, 1, 1]
+    $this->insert(
+      "INSERT INTO note (id_item, type, is_public, id_user, id_project, id_programming_language) VALUES (?, ?, ?, ?, ?, ?)",
+      ["isiiii", $item_id, $type, $is_public, $id_user, $id_project, $id_programming_language]
     );
 
     $query = $this->baseQuery . <<<SQL
     WHERE item.id_item = ?
     SQL;
-    return $this->selectOne($query, ["i", $lastInsertId]);
+    return $this->selectOne($query, ["i", $item_id]);
   }
 
   public function modify($paramsArray)
   {
     $id = $paramsArray['id'];
-    $title = $paramsArray['title'];
-    $content = $paramsArray['content'];
-    $this->update(
-      'UPDATE item SET title = ?, description = ? WHERE id_item = ?',
-      ["ssi", $title, $content, $id]
-    );
 
     $query = $this->baseQuery . <<<SQL
     WHERE item.id_item = ?
     SQL;
+    $note = $this->selectOne($query, ["i", $id]);
+
+    $title = $paramsArray['title'] ?? $note->title;
+    $content = $paramsArray['content'] ?? $note->content;
+    $is_public = $paramsArray['is_public'] ?? $note->is_public;
+
+    $this->update(
+      'UPDATE item SET title = ?, description = ? WHERE id_item = ?',
+      ["ssi", $title, $content, $id]
+    );
+    $this->update(
+      'UPDATE note SET is_public = ? WHERE id_item = ?',
+      ["ii", $is_public, $id]
+    );
+
     return $this->selectOne($query, ["i", $id]);
   }
 }
