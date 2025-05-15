@@ -4,8 +4,6 @@ require_once PROJECT_ROOT_PATH . "/Models/IModel.php";
 
 class NoteModel extends Database implements IModel
 {
-  private $baseQuery;
-
   public function __construct()
   {
     parent::__construct();
@@ -22,10 +20,32 @@ class NoteModel extends Database implements IModel
         item.archived_at,
         note.id_programming_language,
         note.id_project,
-        note.id_user
-      FROM
-        item
-      JOIN note ON note.id_item = item.id_item
+        note.id_user,
+        user.username,
+        user.email,
+        COALESCE(like_counts.total_likes, 0) AS total_likes,
+        COALESCE(dislike_counts.total_dislikes, 0) AS total_dislikes
+      FROM item
+      JOIN
+        note ON note.id_item = item.id_item
+      JOIN
+        user ON user.id_user = note.id_user
+      LEFT JOIN
+        (SELECT
+            id_item, COUNT(*) AS total_likes
+        FROM
+            note_scores
+        WHERE
+            score = 1
+        GROUP BY id_item) AS like_counts ON like_counts.id_item = item.id_item
+            LEFT JOIN
+        (SELECT
+            id_item, COUNT(*) AS total_dislikes
+        FROM
+            note_scores
+        WHERE
+            score = - 1
+        GROUP BY id_item) AS dislike_counts ON dislike_counts.id_item = item.id_item
 
       SQL;
   }
@@ -52,8 +72,35 @@ class NoteModel extends Database implements IModel
     return $this->select($query, ["i", $limit]);
   }
 
-  public function getOne($id)
+  public function getOne($id, $args = null)
   {
+    $user_id = $args['user_id'] ?? null;
+    if ($user_id) {
+      $query = <<<SQL
+        SELECT
+          item.id_item AS id_note,
+          item.title,
+          item.description AS content,
+          note.type,
+          note.is_public,
+          item.created_at,
+          item.updated_at,
+          item.archived_at,
+          note.id_programming_language,
+          note.id_project,
+          note.id_user,
+          user.username,
+          user.email,
+          note_scores.score
+        FROM item
+        JOIN note ON note.id_item = item.id_item
+        JOIN user ON user.id_user = note.id_user
+        LEFT JOIN note_scores ON note_scores.id_item = item.id_item AND note_scores.id_user = ?
+        WHERE item.id_item = ?
+      SQL;
+      return $this->selectOne($query, ["ii", $user_id, $id]);
+    }
+
     $query = $this->baseQuery . " WHERE item.id_item = ?";
 
     return $this->selectOne($query, ["i", $id]);
@@ -92,11 +139,30 @@ class NoteModel extends Database implements IModel
   public function modify($paramsArray)
   {
     $id = $paramsArray['id'];
+    $user_id = $paramsArray['user_id'];
 
     $query = $this->baseQuery . <<<SQL
     WHERE item.id_item = ?
     SQL;
     $note = $this->selectOne($query, ["i", $id]);
+
+    if ($user_id) {
+      $query = <<<SQL
+      SELECT * FROM note_scores
+      WHERE id_item = ? AND id_user = ?
+      SQL;
+      $note_score = $this->selectOne($query, ["ii", $id, $user_id]);
+      $score = $paramsArray['score'] ?? $note_score->score;
+
+      $this->update(
+        <<<SQL
+        UPDATE note_scores
+        SET score = ?
+        WHERE id_item = ? AND id_user = ?
+        SQL,
+        ["ssii", $paramsArray['score'], $id, $user_id]
+      );
+    }
 
     $title = $paramsArray['title'] ?? $note->title;
     $content = $paramsArray['content'] ?? $note->content;
