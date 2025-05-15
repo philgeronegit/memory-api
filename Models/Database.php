@@ -2,6 +2,8 @@
 class Database
 {
   protected $connection = null;
+  protected $baseQuery = null;
+
   public function __construct()
   {
     try {

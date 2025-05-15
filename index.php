@@ -34,6 +34,14 @@ $requestMethod = $_SERVER["REQUEST_METHOD"];
 
 $hasAdditionalSegment = isset($uri[4]);
 if ($hasAdditionalSegment) {
+  if ($uri[2] === 'user' and $uri[4] === 'technical-skill' and $requestMethod === 'GET') {
+    $objController = new TechnicalSkillController();
+    $args = array(
+      'id' => $uri[3]
+    );
+    $objController->listAction($args);
+    exit();
+  }
   if ($uri[2] === 'note' and $uri[4] === 'comment' and $requestMethod === 'GET') {
     $objController = new CommentController();
     $args = array(
@@ -48,6 +56,21 @@ if ($hasAdditionalSegment) {
       'id' => $uri[3]
     );
     $objController->listAction($args);
+    exit();
+  }
+  if ($uri[2] === 'note' and $uri[4] === 'score' and $requestMethod === 'POST') {
+    $objController = new ScoreController();
+    $objController->addAction();
+    exit();
+  }
+  if ($uri[2] === 'note' and $uri[4] === 'score' and $requestMethod === 'PUT') {
+    $objController = new ScoreController();
+    $objController->updateScoreToNote();
+    exit();
+  }
+  if ($uri[2] === 'note' and $uri[4] === 'tag' and $requestMethod === 'PUT') {
+    $objController = new TagController();
+    $objController->updateTagToNote();
     exit();
   }
   if ($uri[2] === 'note' and $uri[4] === 'tag' and $requestMethod === 'POST') {
@@ -90,6 +113,9 @@ switch ($uri[2]) {
     break;
   case 'task':
     $objController = new TaskController();
+    break;
+  case 'user':
+    $objController = new UserController();
     break;
   case 'technical-skill':
     $objController = new TechnicalSkillController();

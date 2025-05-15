@@ -85,7 +85,14 @@ class BaseController
 
     try {
       $res = $fn($args);
-      $responseData = json_encode($res);
+      // check if res is of type array
+
+      if (is_array($res) and array_key_exists("error", $res)) {
+        $strErrorDesc = $res['error'];
+        $strErrorHeader = 'HTTP/1.1 401 Unauthorized';
+      } else {
+        $responseData = json_encode($res);
+      }
     } catch (Error $e) {
       $strErrorDesc = $e->getMessage() . 'Something went wrong! Please contact support.';
       $strErrorHeader = 'HTTP/1.1 500 Internal Server Error';
@@ -131,7 +138,8 @@ class BaseController
   {
     $this->doAction($fn = function () {
       $id = $this->getUriSegments()[3];
-      return $this->model->getOne($id);
+      $args = $this->getQueryStringParams();
+      return $this->model->getOne($id, $args);
     });
   }
 }
