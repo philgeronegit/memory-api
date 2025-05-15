@@ -10,7 +10,7 @@ class ProgrammingLanguageModel extends Database implements IModel
     return $this->select("SELECT * FROM programming_language ORDER BY id_programming_language ASC LIMIT ?", ["i", $limit]);
   }
 
-  public function getOne($id)
+  public function getOne($id, $args = null)
   {
     return $this->selectOne("SELECT * FROM programming_language WHERE id_programming_language = ?", ["i", $id]);
   }

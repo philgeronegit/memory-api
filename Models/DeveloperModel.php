@@ -4,8 +4,6 @@ require_once PROJECT_ROOT_PATH . "/Models/IModel.php";
 
 class DeveloperModel extends Database implements IModel
 {
-  private $baseQuery;
-
   public function __construct()
   {
     parent::__construct();
@@ -19,7 +17,8 @@ class DeveloperModel extends Database implements IModel
           user.created_at,
           user.is_admin,
           user.id_role,
-          role.name AS role
+          role.name as role_name,
+          role.role as role_value
       FROM
           user
       JOIN
@@ -41,7 +40,7 @@ class DeveloperModel extends Database implements IModel
     return $this->select($query, ["i", $limit]);
   }
 
-  public function getOne($id)
+  public function getOne($id, $args = null)
   {
     $query = $this->baseQuery . " WHERE user.id_user = ?";
 

@@ -10,7 +10,7 @@ class ProjectModel extends Database implements IModel
     return $this->select("SELECT * FROM project ORDER BY name ASC LIMIT ?", ["i", $limit]);
   }
 
-  public function getOne($id)
+  public function getOne($id, $args = null)
   {
     return $this->selectOne("SELECT * FROM project WHERE id_project = ?", ["i", $id]);
   }

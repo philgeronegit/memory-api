@@ -4,8 +4,6 @@ require_once PROJECT_ROOT_PATH . "/Models/IModel.php";
 
 class TaskModel extends Database implements IModel
 {
-  private $baseQuery;
-
   public function __construct()
   {
     parent::__construct();
@@ -52,7 +50,7 @@ class TaskModel extends Database implements IModel
     return $this->select($query, ["i", $limit]);
   }
 
-  public function getOne($id)
+  public function getOne($id, $args = null)
   {
     $query = $this->baseQuery . " WHERE task.id_item = ?";
 
