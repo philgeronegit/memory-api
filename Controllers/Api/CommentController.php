@@ -9,7 +9,6 @@ class CommentController extends BaseController
   public function addAction(): void
   {
     $this->doAction($fn = function () {
-
       $content = $this->getRequestBody('content');
       $id_user = $this->getRequestBody('id_user');
       $id_item = $this->getRequestBody('id_item');
@@ -25,11 +24,15 @@ class CommentController extends BaseController
   {
     $this->doAction($fn = function () {
       $id = $this->getUriSegments()[3];
+      $user_id = $this->getRequestBody('user_id');
       $content = $this->getRequestBody('content');
+      $score = $this->getRequestBody('score');
       return $this->model->modify(
         array(
           'id' => $id,
-          'content' => $content
+          'user_id' => $user_id,
+          'content' => $content,
+          'score' => $score
         )
       );
     });
