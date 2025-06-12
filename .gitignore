@@ -38,3 +38,5 @@ launch.json
 .vscode/*
 
 /static/*
+
+/uploads/*
