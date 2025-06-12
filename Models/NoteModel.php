@@ -139,6 +139,7 @@ class NoteModel extends Database implements IModel
   public function modify($paramsArray)
   {
     $id = $paramsArray['id'];
+    $now = date('Y-m-d H:i:s');
     $user_id = $paramsArray['user_id'];
 
     $query = $this->baseQuery . <<<SQL
@@ -167,14 +168,15 @@ class NoteModel extends Database implements IModel
     $title = $paramsArray['title'] ?? $note->title;
     $content = $paramsArray['content'] ?? $note->content;
     $is_public = $paramsArray['is_public'] ?? $note->is_public;
+    $id_project = $paramsArray['id_project'] ?? $note->id_project;
 
     $this->update(
-      'UPDATE item SET title = ?, description = ? WHERE id_item = ?',
-      ["ssi", $title, $content, $id]
+      'UPDATE item SET title = ?, description = ?, updated_at = ? WHERE id_item = ?',
+      ["sssi", $title, $content, $now, $id]
     );
     $this->update(
-      'UPDATE note SET is_public = ? WHERE id_item = ?',
-      ["ii", $is_public, $id]
+      'UPDATE note SET is_public = ?, id_project = ? WHERE id_item = ?',
+      ["iii", $is_public, $id_project, $id]
     );
 
     return $this->selectOne($query, ["i", $id]);
