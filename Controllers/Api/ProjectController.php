@@ -5,4 +5,31 @@ class ProjectController extends BaseController
   {
     parent::__construct(new ProjectModel());
   }
+
+  public function addAction(): void
+  {
+    $this->doAction($fn = function () {
+
+      $name = $this->getRequestBody('name');
+      $description = $this->getRequestBody('description');
+      return $this->model->add(array('name' => $name, 'description' => $description));
+    });
+  }
+
+  public function updateAction(): void
+  {
+    $this->doAction($fn = function () {
+      $id = $this->getUriSegments()[3];
+      $name = $this->getRequestBody('name');
+      $description = $this->getRequestBody('description');
+
+      return $this->model->modify(
+        array(
+          'id' => $id,
+          'name' => $name,
+          'description' => $description
+        )
+      );
+    });
+  }
 }

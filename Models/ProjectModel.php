@@ -25,20 +25,35 @@ class ProjectModel extends Database implements IModel
     $name = $paramsArray['name'];
     $description = $paramsArray['description'];
     $now = date('Y-m-d H:i:s');
-    return $this->insert(
+    $id = $this->insert(
       "INSERT INTO project (name, description, created_at) VALUES (?, ?, ?)",
       ["sss", $name, $description, $now]
     );
+
+    $query = <<<SQL
+    SELECT * FROM project
+    WHERE id_project = ?
+    SQL;
+    return $this->selectOne($query, ["i", $id]);
   }
 
   public function modify($paramsArray)
   {
     $id = $paramsArray['id'];
-    $name = $paramsArray['name'];
-    $description = $paramsArray['description'];
-    return $this->update(
+
+    $query = <<<SQL
+    SELECT * FROM project
+    WHERE id_project = ?
+    SQL;
+    $project = $this->selectOne($query, ["i", $id]);
+
+    $name = $paramsArray['name'] ?? $project->name;
+    $description = $paramsArray['description'] ?? $project->description;
+    $this->update(
       "UPDATE project SET name = ?, description = ? WHERE id_project = ?",
       ["ssi", $name, $description, $id]
     );
+
+    return $this->selectOne($query, ["i", $id]);
   }
 }
