@@ -34,6 +34,22 @@ $requestMethod = $_SERVER["REQUEST_METHOD"];
 
 $hasAdditionalSegment = isset($uri[4]);
 if ($hasAdditionalSegment) {
+  if ($uri[2] === 'user' and $uri[4] === 'upload' and $requestMethod === 'GET') {
+    $objController = new UploadController();
+    $args = array(
+      'id' => $uri[3]
+    );
+    $objController->listAction($args);
+    exit();
+  }
+  if ($uri[2] === 'user' and $uri[4] === 'message' and $requestMethod === 'GET') {
+    $objController = new MessageController();
+    $args = array(
+      'id' => $uri[3]
+    );
+    $objController->listAction($args);
+    exit();
+  }
   if ($uri[2] === 'user' and $uri[4] === 'technical-skill' and $requestMethod === 'GET') {
     $objController = new TechnicalSkillController();
     $args = array(
@@ -119,6 +135,9 @@ switch ($uri[2]) {
     break;
   case 'technical-skill':
     $objController = new TechnicalSkillController();
+    break;
+  case 'upload':
+    $objController = new UploadController();
     break;
   default:
     header("HTTP/1.1 404 Not Found");
