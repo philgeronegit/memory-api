@@ -15,6 +15,7 @@ class UserModel extends Database implements IModel
           u.email,
           u.avatar_url,
           u.created_at,
+          u.password,
           u.id_role,
           r.name as role_name,
           r.role as role_value
@@ -54,17 +55,19 @@ class UserModel extends Database implements IModel
     $username = $paramsArray['username'];
     $email = $paramsArray['email'];
     $avatar_url = $paramsArray['avatar_url'];
-    $role_id = $paramsArray['role_id'];
+    $id_role = $paramsArray['id_role'];
     $is_admin = $paramsArray['is_admin'];
+    $password = $paramsArray['password'];
     $now = date('Y-m-d H:i:s');
+    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
     $id = $this->insert(
-      "INSERT INTO user (username, email, avatar_url, id_role, is_admin, created_at) " .
-      "VALUES (?, ?, ?, ?, ?, ?)",
-      ["sssiis", $username, $email, $avatar_url, $id_role, $is_admin, $now]
+      "INSERT INTO user (username, email, avatar_url, id_role, is_admin, password, created_at) " .
+      "VALUES (?, ?, ?, ?, ?, ?, ?)",
+      ["sssiiss", $username, $email, $avatar_url, $id_role, $is_admin, $hashed_password, $now]
     );
 
     $query = $this->baseQuery . <<<SQL
-    WHERE user.id_user = ?
+    WHERE id_user = ?
     SQL;
     return $this->selectOne($query, ["i", $id]);
   }
@@ -74,7 +77,7 @@ class UserModel extends Database implements IModel
     $id = $paramsArray['id'];
 
     $query = $this->baseQuery . <<<SQL
-    WHERE user.id_user = ?
+    WHERE id_user = ?
     SQL;
     $user = $this->selectOne($query, ["i", $id]);
 

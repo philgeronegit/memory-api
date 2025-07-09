@@ -16,7 +16,22 @@ class LoginController extends BaseController
       if (isset($return->id_user)) {
         return $return;
       }
-      return array('error' => 'Invalid username or password');
+      $this->sendOutput(
+        json_encode(array("error" => "Invalid username or password")),
+        array('Content-Type: application/json', 'HTTP/1.1 401 Unauthorized')
+      );
+    });
+  }
+
+  public function updateAction(): void
+  {
+    $this->doAction($fn = function () {
+      $id = $this->getUriSegments()[3];
+      $password = $this->getRequestBody('password');
+      return $this->model->modify(array(
+        'id' => $id,
+        'password' => $password,
+      ));
     });
   }
 }

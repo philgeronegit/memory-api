@@ -12,7 +12,18 @@ class UserController extends BaseController
 
       $username = $this->getRequestBody('username');
       $email = $this->getRequestBody('email');
-      return $this->model->add(array('username' => $username, 'email' =>  $email));
+      $avatar_url = $this->getRequestBody('avatar_url');
+      $id_role = $this->getRequestBody('id_role');
+      $is_admin = $this->getRequestBody('is_admin');
+      $password = $this->getRequestBody('password');
+      return $this->model->add(array(
+        'username' => $username,
+        'email' =>  $email,
+        'avatar_url' => $avatar_url,
+        'id_role' => $id_role,
+        'is_admin' => $is_admin,
+        'password' => $password
+      ));
     });
   }
 
