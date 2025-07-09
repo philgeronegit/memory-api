@@ -34,6 +34,14 @@ $requestMethod = $_SERVER["REQUEST_METHOD"];
 
 $hasAdditionalSegment = isset($uri[4]);
 if ($hasAdditionalSegment) {
+  if ($uri[2] === 'user' and $uri[4] === 'project' and $requestMethod === 'GET') {
+    $objController = new ProjectController();
+    $args = array(
+      'id' => $uri[3]
+    );
+    $objController->listAction($args);
+    exit();
+  }
   if ($uri[2] === 'user' and $uri[4] === 'upload' and $requestMethod === 'GET') {
     $objController = new UploadController();
     $args = array(

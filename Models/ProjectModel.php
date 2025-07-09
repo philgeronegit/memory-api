@@ -4,15 +4,53 @@ require_once PROJECT_ROOT_PATH . "/Models/IModel.php";
 
 class ProjectModel extends Database implements IModel
 {
+  public function __construct()
+  {
+    parent::__construct();
+
+    $this->baseQuery = <<<SQL
+      SELECT
+          project.id_project,
+          name,
+          description,
+          project.created_at,
+          modified_at,
+          archived_at,
+          project.id_user AS created_by_id,
+          user.username AS created_by_name,
+          projects.id_user
+      FROM
+          project
+      JOIN
+          projects ON projects.id_project = project.id_project
+      JOIN user ON user.id_user = project.id_user
+      SQL;
+  }
+
   public function getAll($args)
   {
     $limit = $args['limit'];
-    return $this->select("SELECT * FROM project ORDER BY name ASC LIMIT ?", ["i", $limit]);
+    if (array_key_exists('id', $args)) {
+      $id = $args['id'];
+      $query = $this->baseQuery . <<<SQL
+       WHERE
+            projects.id_user = ?
+      ORDER BY name ASC LIMIT ?
+      SQL;
+
+      return $this->select($query, ["ii", $id, $limit]);
+    }
+
+    $query = $this->baseQuery . <<<SQL
+      ORDER BY name ASC LIMIT ?
+    SQL;
+
+    return $this->select($query, ["i", $limit]);
   }
 
   public function getOne($id, $args = null)
   {
-    return $this->selectOne("SELECT * FROM project WHERE id_project = ?", ["i", $id]);
+    return $this->selectOne($this->baseQuery . " WHERE id_project = ?", ["i", $id]);
   }
 
   public function remove($id)
