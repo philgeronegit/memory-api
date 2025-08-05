@@ -3,16 +3,18 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Headers: *");
-header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-
+// Handle CORS preflight requests
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    header("Access-Control-Allow-Origin: *");
+    header("Access-Control-Allow-Origin: http://localhost:3000");
+    header("Access-Control-Allow-Credentials: true");
     header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-    header("Access-Control-Allow-Headers: Content-Type, Authorization");
+    header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, Authorization");
     exit(0);
 }
+
+// Set CORS headers for all other requests
+header("Access-Control-Allow-Origin: http://localhost:3000");
+header("Access-Control-Allow-Credentials: true");
 
 require_once __DIR__ . '/vendor/autoload.php';
 
@@ -20,6 +22,44 @@ $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
 require_once __DIR__ . "/inc/bootstrap.php";
+
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
+
+function verifyJwtToken() {
+    $headers = getallheaders();
+    $authHeader = $headers['Authorization'] ?? null;
+
+    if (!$authHeader) {
+        http_response_code(401);
+        header('Content-Type: application/json');
+        echo json_encode(['error' => 'Authorization header missing']);
+        exit();
+    }
+
+    if (!preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
+        http_response_code(401);
+        header('Content-Type: application/json');
+        echo json_encode(['error' => 'Invalid authorization header format']);
+        exit();
+    }
+
+    $token = $matches[1];
+
+    try {
+        $secretKey = JWT_SECRET_KEY;
+        $algorithm = JWT_ALGORITHM;
+        $decoded = JWT::decode($token, new Key($secretKey, $algorithm));
+
+        // Token is valid, return decoded payload
+        return $decoded;
+    } catch (Exception $e) {
+        http_response_code(401);
+        header('Content-Type: application/json');
+        echo json_encode(['error' => 'Invalid or expired token: ' . $e->getMessage()]);
+        exit();
+    }
+}
 
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $uri = explode('/', $uri);
@@ -31,6 +71,13 @@ if (!$hasRoute) {
 }
 
 $requestMethod = $_SERVER["REQUEST_METHOD"];
+
+// JWT verification for all routes except login
+if ($uri[2] !== 'login') {
+    $decodedToken = verifyJwtToken();
+    // Store decoded token data in a global variable for controllers to access if needed
+    $GLOBALS['jwt_user_data'] = $decodedToken->data ?? null;
+}
 
 $hasAdditionalSegment = isset($uri[4]);
 if ($hasAdditionalSegment) {

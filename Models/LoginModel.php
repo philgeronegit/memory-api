@@ -50,7 +50,9 @@ class LoginModel extends Database
       // Generate JWT token
       $jwtToken = $this->generateJwtToken($user);
       // Add token to user object
-      $user->token = $jwtToken;
+      $user->access_token = $jwtToken;
+      $user->token_type = 'Bearer';
+      $user->expires_in = (int)JWT_EXPIRATION_TIME;
       return $user;
     }
     return null;

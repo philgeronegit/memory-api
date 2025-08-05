@@ -18,6 +18,16 @@ class BaseController
   }
 
   /**
+   * Get authenticated user data from JWT token
+   *
+   * @return object|null
+   */
+  protected function getAuthenticatedUser()
+  {
+    return $GLOBALS['jwt_user_data'] ?? null;
+  }
+
+  /**
    * Get URI elements.
    * Returns an array of URI elements.
    *
@@ -46,7 +56,26 @@ class BaseController
   protected function getRequestBody($name)
   {
     $data = json_decode(file_get_contents('php://input'), true);
-    return isset($data[$name]) ? $data[$name] : null;
+    $value = isset($data[$name]) ? $data[$name] : null;
+
+    return $this->sanitizeInput($value);
+  }
+
+  /**
+   * Sanitize input data.
+   * Removes HTML tags and trims whitespace.
+   * @param mixed $value
+   * @return mixed
+   */
+  protected function sanitizeInput($value)
+  {
+    if (is_array($value)) {
+      return array_map([$this, 'sanitizeInput'], $value);
+    } elseif (is_string($value)) {
+      // Remove HTML tags and trim whitespace
+      return trim(strip_tags($value));
+    }
+    return $value; // Return as is for non-string and non-array types
   }
 
   /**
