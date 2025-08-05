@@ -15,7 +15,6 @@ class UserModel extends Database implements IModel
           u.email,
           u.avatar_url,
           u.created_at,
-          u.password,
           u.id_role,
           r.name as role_name,
           r.role as role_value
