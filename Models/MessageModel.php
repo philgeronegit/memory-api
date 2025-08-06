@@ -60,6 +60,7 @@ class MessageModel extends Database implements IModel
 
   public function remove($id)
   {
+    $this->delete("DELETE FROM messages WHERE id_message = ?", ["i", $id]);
     return $this->delete("DELETE FROM message WHERE id_message = ?", ["i", $id]);
   }
 
