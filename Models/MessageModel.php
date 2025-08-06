@@ -43,7 +43,10 @@ class MessageModel extends Database implements IModel
       return $this->select($query, ["si", $search, $limit]);
     }
 
-    return $this->select("SELECT * FROM tag ORDER BY name ASC LIMIT ?", ["i", $limit]);
+    $query = $this->baseQuery . <<<SQL
+      ORDER BY created_at DESC LIMIT ?
+    SQL;
+    return $this->select($query, ["i", $limit]);
   }
 
   public function getOne($id, $args = null)
@@ -69,8 +72,14 @@ class MessageModel extends Database implements IModel
       ["ss", $text, $now]
     );
 
+    $id_user = $paramsArray['id_user'];
+    $this->insert(
+      "INSERT INTO messages (id_message, id_user) VALUES (?, ?)",
+      ["ii", $id, $id_user]
+    );
+
     $query = $this->baseQuery . <<<SQL
-    WHERE m.id_message = ?
+      WHERE m.id_message = ?
     SQL;
     return $this->selectOne($query, ["i", $id]);
   }
@@ -107,10 +116,14 @@ class MessageModel extends Database implements IModel
   {
     $id = $paramsArray['id'];
     $text = $paramsArray['text'];
-    $read_at = $paramsArray['read_at'] ?? null;
-    return $this->update(
-      "UPDATE message SET text = ? WHERE m.id_message = ?",
+    $this->update(
+      "UPDATE message SET text = ? WHERE id_message = ?",
       ["si", $text, $id]
     );
+
+    $query = $this->baseQuery . <<<SQL
+      WHERE m.id_message = ?
+    SQL;
+    return $this->selectOne($query, ["i", $id]);
   }
 }

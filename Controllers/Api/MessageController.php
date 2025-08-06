@@ -19,7 +19,8 @@ class MessageController extends BaseController
   {
     $this->doAction($fn = function () {
       $text = $this->getRequestBody('text');
-      return $this->model->add(array('text' => $text));
+      $id_user = $this->getRequestBody('id_user');
+      return $this->model->add(array('text' => $text, 'id_user' => $id_user));
     });
   }
 
