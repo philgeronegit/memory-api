@@ -20,9 +20,11 @@ class NoteModel extends Database implements IModel
         item.archived_at,
         note.id_programming_language,
         note.id_project,
+        project.name AS project_name,
         note.id_user,
         user.username,
         user.email,
+        (SELECT group_concat(tag.name) FROM tags JOIN tag ON tag.id_tag = tags.id_tag WHERE tags.id_item = item.id_item) as tags,
         COALESCE(like_counts.total_likes, 0) AS total_likes,
         COALESCE(dislike_counts.total_dislikes, 0) AS total_dislikes
       FROM item
@@ -30,6 +32,8 @@ class NoteModel extends Database implements IModel
         note ON note.id_item = item.id_item
       JOIN
         user ON user.id_user = note.id_user
+      JOIN
+        project ON project.id_project = note.id_project
       LEFT JOIN
         (SELECT
             id_item, COUNT(*) AS total_likes
