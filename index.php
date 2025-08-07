@@ -167,6 +167,9 @@ switch ($uri[2]) {
   case 'developer':
     $objController = new DeveloperController();
     break;
+  case 'message':
+    $objController = new MessageController();
+    break;
   case 'note':
     $objController = new NoteController();
     break;
