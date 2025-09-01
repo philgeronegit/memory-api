@@ -40,10 +40,9 @@ class TechnicalSkillModel extends Database implements IModel
   public function add($paramsArray)
   {
     $name = $paramsArray['name'];
-    $year = $paramsArray['year'];
     return $this->insert(
-      "INSERT INTO technical_skill (name, year_experience) VALUES (?, ?)",
-      ["si", $name, $year]
+      "INSERT INTO technical_skill (name) VALUES (?)",
+      ["s", $name]
     );
   }
 
@@ -51,10 +50,9 @@ class TechnicalSkillModel extends Database implements IModel
   {
     $id = $paramsArray['id'];
     $name = $paramsArray['name'];
-    $year = $paramsArray['year'];
     return $this->update(
-      "UPDATE technical_skill SET name = ?, year_experience = ? WHERE id_technical_skill = ?",
-      ["sii", $name, $year, $id]
+      "UPDATE technical_skill SET name = ? WHERE id_technical_skill = ?",
+      ["si", $name, $id]
     );
   }
 }
