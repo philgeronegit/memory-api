@@ -21,7 +21,8 @@ class LoginModel extends Database
           u.password,
           u.id_role,
           r.name as role_name,
-          r.role as role_value
+          r.role as role_value,
+          u.is_admin
       FROM
           user u
               JOIN
