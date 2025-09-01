@@ -150,6 +150,10 @@ class BaseController
       if ($search) {
         $args['search'] = $search;
       }
+      $searchType = $this->getQueryString('search_type', 'all');
+      if ($searchType) {
+        $args['search_type'] = $searchType;
+      }
 
       return $this->model->getAll($args);
     }, $args);
