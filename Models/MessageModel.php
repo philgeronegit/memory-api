@@ -9,12 +9,20 @@ class MessageModel extends Database implements IModel
     parent::__construct();
 
     $this->baseQuery = <<<SQL
-      SELECT
-          id_user, m.id_message, created_at, read_at, text
-      FROM
-          messages msgs
-      JOIN
-          message m ON m.id_message = msgs.id_message
+        SELECT
+            m.id_message,
+            m.created_at,
+            text,
+            GROUP_CONCAT(user.username) AS users,
+            GROUP_CONCAT(user.id_user) AS id_users
+        FROM
+            messages msgs
+        RIGHT JOIN
+            message m ON m.id_message = msgs.id_message
+        LEFT JOIN
+            user ON user.id_user = msgs.id_user
+        GROUP BY id_message
+
       SQL;
   }
 
@@ -23,10 +31,19 @@ class MessageModel extends Database implements IModel
     $limit = $args['limit'];
     if (array_key_exists('id', $args)) {
       $id = $args['id'];
-      $query = $this->baseQuery . <<<SQL
-       WHERE
-          id_user = ?
-      ORDER BY created_at DESC LIMIT ?
+      $query = <<<SQL
+        SELECT
+            m.id_message,
+            m.created_at,
+            text
+        FROM
+            messages msgs
+                RIGHT JOIN
+            message m ON m.id_message = msgs.id_message
+                LEFT JOIN
+            user ON user.id_user = msgs.id_user
+        WHERE msgs.id_user = ?
+        ORDER BY created_at DESC LIMIT ?
       SQL;
 
       return $this->select($query, ["ii", $id, $limit]);
@@ -51,10 +68,16 @@ class MessageModel extends Database implements IModel
 
   public function getOne($id, $args = null)
   {
-    $query = $this->baseQuery . <<<SQL
-      WHERE
-          m.id_message = ?
-      SQL;
+    $query = <<<SQL
+        SELECT
+            id_message,
+            created_at,
+            text
+        FROM
+            message
+        WHERE id_message = ?
+        ORDER BY created_at DESC
+    SQL;
     return $this->selectOne($query, ["i", $id]);
   }
 
