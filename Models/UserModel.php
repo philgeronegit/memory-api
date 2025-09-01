@@ -17,7 +17,8 @@ class UserModel extends Database implements IModel
           u.created_at,
           u.id_role,
           r.name as role_name,
-          r.role as role_value
+          r.role as role_value,
+          is_admin
       FROM
           user u
               JOIN
@@ -33,6 +34,29 @@ class UserModel extends Database implements IModel
     ORDER BY username ASC
     LIMIT ?
     SQL;
+
+    if (array_key_exists('search', $args)) {
+      $search = "%" . $args['search'] . "%";
+      $searchType = $args['search_type'] ?? 'all';
+
+      if ($searchType === 'all') {
+        $query = $this->baseQuery . <<<SQL
+          WHERE
+              u.username LIKE ?
+          ORDER BY u.username ASC LIMIT ?
+        SQL;
+      } elseif ($searchType === 'role') {
+        $search = $args['search'];
+        $query = $this->baseQuery . <<<SQL
+          WHERE
+              r.id_role = ?
+          ORDER BY r.name ASC LIMIT ?
+        SQL;
+      }
+
+
+      return $this->select($query, ["si", $search, $limit]);
+    }
 
     return $this->select($query, ["i", $limit]);
   }
