@@ -12,7 +12,8 @@ class ProjectController extends BaseController
 
       $name = $this->getRequestBody('name');
       $description = $this->getRequestBody('description');
-      return $this->model->add(array('name' => $name, 'description' => $description));
+      $id_user = $this->getRequestBody('id_user');
+      return $this->model->add(array('name' => $name, 'description' => $description, 'id_user' => $id_user));
     });
   }
 

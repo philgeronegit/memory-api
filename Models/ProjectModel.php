@@ -10,20 +10,28 @@ class ProjectModel extends Database implements IModel
 
     $this->baseQuery = <<<SQL
       SELECT
-          project.id_project,
-          name,
-          description,
-          project.created_at,
-          modified_at,
-          archived_at,
-          project.id_user AS created_by_id,
-          user.username AS created_by_name,
-          projects.id_user
-      FROM
-          project
-      JOIN
-          projects ON projects.id_project = project.id_project
-      JOIN user ON user.id_user = project.id_user
+        project.id_project,
+        name,
+        description,
+        project.created_at,
+        project.id_user AS created_by_id,
+        user.username AS created_by_name,
+        modified_at as updated_at,
+        archived_at,
+        group_concat(projects.id_user) as id_users,
+        group_concat(user.username) as users,
+        CONCAT(
+            '[',
+            GROUP_CONCAT(
+                JSON_OBJECT('id_user', projects.id_user, 'username', user.username)
+            ),
+            ']'
+        ) AS users_json,
+        (SELECT group_concat(id_item) FROM note WHERE note.id_project = project.id_project) as id_notes
+      FROM project
+      LEFT JOIN projects ON projects.id_project = project.id_project
+      LEFT JOIN user ON user.id_user = projects.id_user
+      GROUP by project.id_project
       SQL;
   }
 
@@ -62,10 +70,11 @@ class ProjectModel extends Database implements IModel
   {
     $name = $paramsArray['name'];
     $description = $paramsArray['description'];
+    $id_user = $paramsArray['id_user'] ?? null;
     $now = date('Y-m-d H:i:s');
     $id = $this->insert(
-      "INSERT INTO project (name, description, created_at) VALUES (?, ?, ?)",
-      ["sss", $name, $description, $now]
+      "INSERT INTO project (name, description, created_at, id_user) VALUES (?, ?, ?, ?)",
+      ["ssss", $name, $description, $now, $id_user]
     );
 
     $query = <<<SQL
