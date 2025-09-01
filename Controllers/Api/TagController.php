@@ -15,6 +15,15 @@ class TagController extends BaseController
     });
   }
 
+  public function updateTagToNote(): void
+  {
+    $this->doAction($fn = function () {
+      $note_id = $this->getUriSegments()[3];
+      $tag_ids = $this->getRequestBody('tagIds');
+      return $this->model->addToNote(array('note_id' => $note_id, 'tag_ids' => $tag_ids));
+    });
+  }
+
   public function removeTagToNote(): void
   {
     $this->doAction($fn = function () {

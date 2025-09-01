@@ -10,7 +10,7 @@ class RoleModel extends Database implements IModel
     return $this->select("SELECT * FROM role ORDER BY name ASC LIMIT ?", ["i", $limit]);
   }
 
-  public function getOne($id)
+  public function getOne($id, $args = null)
   {
     return $this->selectOne("SELECT * FROM role WHERE id_role = ?", ["i", $id]);
   }

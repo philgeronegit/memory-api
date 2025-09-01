@@ -2,7 +2,7 @@
 require_once PROJECT_ROOT_PATH . "/Models/Database.php";
 require_once PROJECT_ROOT_PATH . "/Models/IModel.php";
 
-class DeveloperModel extends Database implements IModel
+class UserModel extends Database implements IModel
 {
   public function __construct()
   {
@@ -10,21 +10,19 @@ class DeveloperModel extends Database implements IModel
 
     $this->baseQuery = <<<SQL
       SELECT
-          user.id_user,
-          user.username,
-          user.email,
-          user.avatar_url,
-          user.created_at,
-          user.is_admin,
-          user.id_role,
-          role.name as role_name,
-          role.role as role_value
+          u.id_user,
+          u.username,
+          u.email,
+          u.avatar_url,
+          u.created_at,
+          u.id_role,
+          r.name as role_name,
+          r.role as role_value,
+          is_admin
       FROM
-          user
-      JOIN
-          developer ON user.id_user = developer.id_user
-      JOIN
-          role ON user.id_role = role.id_role
+          user u
+              JOIN
+          role r ON r.id_role = u.id_role
 
       SQL;
   }
@@ -37,12 +35,35 @@ class DeveloperModel extends Database implements IModel
     LIMIT ?
     SQL;
 
+    if (array_key_exists('search', $args)) {
+      $search = "%" . $args['search'] . "%";
+      $searchType = $args['search_type'] ?? 'all';
+
+      if ($searchType === 'all') {
+        $query = $this->baseQuery . <<<SQL
+          WHERE
+              u.username LIKE ?
+          ORDER BY u.username ASC LIMIT ?
+        SQL;
+      } elseif ($searchType === 'role') {
+        $search = $args['search'];
+        $query = $this->baseQuery . <<<SQL
+          WHERE
+              r.id_role = ?
+          ORDER BY r.name ASC LIMIT ?
+        SQL;
+      }
+
+
+      return $this->select($query, ["si", $search, $limit]);
+    }
+
     return $this->select($query, ["i", $limit]);
   }
 
   public function getOne($id, $args = null)
   {
-    $query = $this->baseQuery . " WHERE user.id_user = ?";
+    $query = $this->baseQuery . " WHERE id_user = ?";
 
     return $this->selectOne($query, ["i", $id]);
   }
@@ -57,21 +78,19 @@ class DeveloperModel extends Database implements IModel
     $username = $paramsArray['username'];
     $email = $paramsArray['email'];
     $avatar_url = $paramsArray['avatar_url'];
-    $role_id = $paramsArray['role_id'];
+    $id_role = $paramsArray['id_role'];
     $is_admin = $paramsArray['is_admin'];
+    $password = $paramsArray['password'];
     $now = date('Y-m-d H:i:s');
+    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
     $id = $this->insert(
-      "INSERT INTO user (username, email, avatar_url, id_role, is_admin, created_at) " .
-      "VALUES (?, ?, ?, ?, ?, ?)",
-      ["sssiis", $username, $email, $avatar_url, $id_role, $is_admin, $now]
-    );
-    $this->insert(
-      "INSERT INTO developer (id_user) VALUES (?)",
-      ["i", $id]
+      "INSERT INTO user (username, email, avatar_url, id_role, is_admin, password, created_at) " .
+      "VALUES (?, ?, ?, ?, ?, ?, ?)",
+      ["sssiiss", $username, $email, $avatar_url, $id_role, $is_admin, $hashed_password, $now]
     );
 
     $query = $this->baseQuery . <<<SQL
-    WHERE user.id_user = ?
+    WHERE id_user = ?
     SQL;
     return $this->selectOne($query, ["i", $id]);
   }
@@ -81,7 +100,7 @@ class DeveloperModel extends Database implements IModel
     $id = $paramsArray['id'];
 
     $query = $this->baseQuery . <<<SQL
-    WHERE user.id_user = ?
+    WHERE id_user = ?
     SQL;
     $user = $this->selectOne($query, ["i", $id]);
 

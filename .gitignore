@@ -36,3 +36,7 @@ composer.lock
 
 launch.json
 .vscode/*
+
+/static/*
+
+/uploads/*

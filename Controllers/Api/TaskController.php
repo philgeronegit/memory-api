@@ -6,6 +6,21 @@ class TaskController extends BaseController
     parent::__construct(new TaskModel());
   }
 
+  public function addAction(): void
+  {
+    $this->doAction($fn = function () {
+
+      $title = $this->getRequestBody('title');
+      $description = $this->getRequestBody('description');
+      $id_status = $this->getRequestBody('id_status');
+      return $this->model->add(array(
+        'title' => $title,
+        'description' => $description,
+        'id_status' => $id_status
+      ));
+    });
+  }
+
   public function updateAction(): void
   {
     $this->doAction($fn = function () {

@@ -7,12 +7,18 @@ class TechnicalSkillModel extends Database implements IModel
   public function getAll($args)
   {
     $limit = $args['limit'];
-    $id = $params[1];
-    if ($id != null) {
+    if (array_key_exists('id', $args)) {
+      $id = $args['id'];
       $query = <<<SQL
-      SELECT * FROM technical_skill
-      WHERE id_technical_skill = ?
-      ORDER BY name ASC LIMIT ?
+      SELECT
+          ts.id_technical_skill, name, id_user, year_experience
+      FROM
+          technical_skill ts
+              JOIN
+          skills ON skills.id_technical_skill = ts.id_technical_skill
+      WHERE
+          id_user = ?
+      ORDER BY ts.name ASC LIMIT ?
       SQL;
 
       return $this->select($query, ["ii", $id, $limit]);
@@ -21,7 +27,7 @@ class TechnicalSkillModel extends Database implements IModel
     return $this->select("SELECT * FROM technical_skill ORDER BY name ASC LIMIT ?", ["i", $limit]);
   }
 
-  public function getOne($id)
+  public function getOne($id, $args = null)
   {
     return $this->selectOne("SELECT * FROM technical_skill WHERE id_technical_skill = ?", ["i", $id]);
   }
@@ -34,10 +40,9 @@ class TechnicalSkillModel extends Database implements IModel
   public function add($paramsArray)
   {
     $name = $paramsArray['name'];
-    $year = $paramsArray['year'];
     return $this->insert(
-      "INSERT INTO technical_skill (name, year_experience) VALUES (?, ?)",
-      ["si", $name, $year]
+      "INSERT INTO technical_skill (name) VALUES (?)",
+      ["s", $name]
     );
   }
 
@@ -45,10 +50,9 @@ class TechnicalSkillModel extends Database implements IModel
   {
     $id = $paramsArray['id'];
     $name = $paramsArray['name'];
-    $year = $paramsArray['year'];
     return $this->update(
-      "UPDATE technical_skill SET name = ?, year_experience = ? WHERE id_technical_skill = ?",
-      ["sii", $name, $year, $id]
+      "UPDATE technical_skill SET name = ? WHERE id_technical_skill = ?",
+      ["si", $name, $id]
     );
   }
 }

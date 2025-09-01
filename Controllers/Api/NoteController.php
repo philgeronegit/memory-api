@@ -34,15 +34,19 @@ class NoteController extends BaseController
   {
     $this->doAction($fn = function () {
       $id = $this->getUriSegments()[3];
+      $user_id = $this->getRequestBody('user_id');
       $title = $this->getRequestBody('title');
       $content = $this->getRequestBody('content');
       $is_public = $this->getRequestBody('is_public');
+      $id_project = $this->getRequestBody('id_project');
       return $this->model->modify(
         array(
           'id' => $id,
+          'user_id' => $user_id,
           'title' => $title,
           'content' => $content,
-          'is_public' => $is_public
+          'is_public' => $is_public,
+          'id_project' => $id_project
         )
       );
     });

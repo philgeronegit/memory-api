@@ -35,7 +35,7 @@ class TagModel extends Database implements IModel
     return $this->select("SELECT * FROM tag ORDER BY name ASC LIMIT ?", ["i", $limit]);
   }
 
-  public function getOne($id)
+  public function getOne($id, $args = null)
   {
     return $this->selectOne("SELECT * FROM tag WHERE id_tag = ?", ["i", $id]);
   }
@@ -73,11 +73,24 @@ class TagModel extends Database implements IModel
   public function addToNote($paramsArray)
   {
     $note_id = $paramsArray['note_id'];
-    $tag_id = $paramsArray['tag_id'];
-    return $this->insert(
-      "INSERT INTO tags (id_tag, id_item) VALUES (?, ?)",
-      ["ii", $tag_id, $note_id]
-    );
+    $tag_ids = $paramsArray['tag_ids'];
+
+    if (!is_array($tag_ids)) {
+      throw new InvalidArgumentException('tag_ids must be an array.');
+    }
+
+    // delete all tags for the note
+    $this->delete("DELETE FROM tags WHERE id_item = ?", ["i", $note_id]);
+
+    // insert new tags
+    foreach ($tag_ids as $tag_id) {
+      $this->insert(
+        "INSERT INTO tags (id_tag, id_item) VALUES (?, ?)",
+        ["ii", $tag_id, $note_id]
+      );
+    }
+
+    return true;
   }
 
   public function modify($paramsArray)
