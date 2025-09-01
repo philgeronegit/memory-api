@@ -64,10 +64,17 @@ class TaskModel extends Database implements IModel
 
   public function add($paramsArray)
   {
-    $name = $paramsArray['name'];
-    return $this->insert(
-      "INSERT INTO task (name) VALUES (?)",
-      ["s", $name]
+    $title = $paramsArray['title'];
+    $description = $paramsArray['description'];
+    $id_status = $paramsArray['id_status'];
+    $id = $this->insert(
+      "INSERT INTO item (title, description) VALUES (?, ?)",
+      ["ss", $title, $description]
+    );
+
+    $this->insert(
+      "INSERT INTO task (id_item, id_status) VALUES (?, ?)",
+      ["ii", $id, $id_status]
     );
   }
 
