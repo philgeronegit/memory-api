@@ -3,6 +3,8 @@ class Database
 {
   protected $connection = null;
   protected $baseQuery = null;
+  protected $baseQuerySelect = null;
+  protected $baseQueryGroupBy = null;
 
   public function __construct()
   {
