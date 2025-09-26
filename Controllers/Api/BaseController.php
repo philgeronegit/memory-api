@@ -146,6 +146,11 @@ class BaseController
       $intLimit = $this->getQueryString('limit', 50);
       $args['limit'] = $intLimit;
 
+      $count = $this->getQueryString('count');
+      if ($count) {
+        $args['count'] = $count;
+      }
+
       $search = $this->getQueryString('search');
       if ($search) {
         $args['search'] = $search;

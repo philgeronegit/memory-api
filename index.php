@@ -105,6 +105,22 @@ if ($hasAdditionalSegment) {
     $objController->listAction($args);
     exit();
   }
+  if ($uri[2] === 'user' and $uri[4] === 'note' and $requestMethod === 'GET') {
+    $objController = new NoteController();
+    $args = array(
+      'id' => $uri[3]
+    );
+    $objController->listAction($args);
+    exit();
+  }
+  if ($uri[2] === 'user' and $uri[4] === 'task' and $requestMethod === 'GET') {
+    $objController = new TaskController();
+    $args = array(
+      'id' => $uri[3]
+    );
+    $objController->listAction($args);
+    exit();
+  }
   if ($uri[2] === 'user' and $uri[4] === 'technical-skill' and $requestMethod === 'GET') {
     $objController = new TechnicalSkillController();
     $args = array(
@@ -186,6 +202,11 @@ switch ($uri[2]) {
     $objController = new TagController();
     break;
   case 'task':
+    if (isset($uri[3]) and $uri[3] === 'order' and $requestMethod === 'PUT') {
+      $objController = new TaskController();
+      $objController->reorderTasks();
+      exit();
+    }
     $objController = new TaskController();
     break;
   case 'user':

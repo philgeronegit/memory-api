@@ -40,10 +40,21 @@ class ProjectModel extends Database implements IModel
     $limit = $args['limit'];
     if (array_key_exists('id', $args)) {
       $id = $args['id'];
-      $query = $this->baseQuery . <<<SQL
-       WHERE
-            projects.id_user = ?
-      ORDER BY name ASC LIMIT ?
+      $query = <<<SQL
+        SELECT
+          project.id_project,
+          name,
+          description,
+          project.created_at,
+          project.id_user AS created_by_id,
+          user.username AS created_by_name,
+          modified_at as updated_at,
+          archived_at
+        FROM project
+        LEFT JOIN projects ON projects.id_project = project.id_project
+        LEFT JOIN user ON user.id_user = projects.id_user
+        WHERE projects.id_user = ?
+        ORDER BY name ASC LIMIT ?
       SQL;
 
       return $this->select($query, ["ii", $id, $limit]);

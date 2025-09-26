@@ -8,22 +8,32 @@ class MessageModel extends Database implements IModel
   {
     parent::__construct();
 
-    $this->baseQuery = <<<SQL
+    $this->baseQuerySelect = <<<SQL
         SELECT
             m.id_message,
             m.created_at,
             text,
             GROUP_CONCAT(user.username) AS users,
-            GROUP_CONCAT(user.id_user) AS id_users
+            GROUP_CONCAT(user.id_user) AS id_users,
+            CONCAT(
+              '[',
+              GROUP_CONCAT(
+                JSON_OBJECT('id_user', user.id_user, 'username', user.username)
+              ),
+              ']'
+            ) AS users_json
         FROM
             messages msgs
         RIGHT JOIN
             message m ON m.id_message = msgs.id_message
         LEFT JOIN
             user ON user.id_user = msgs.id_user
-        GROUP BY id_message
 
       SQL;
+
+    $this->baseQueryGroupBy = <<<SQL
+      GROUP BY m.id_message
+    SQL;
   }
 
   public function getAll($args)
@@ -35,7 +45,8 @@ class MessageModel extends Database implements IModel
         SELECT
             m.id_message,
             m.created_at,
-            text
+            text,
+            read_at
         FROM
             messages msgs
                 RIGHT JOIN
@@ -49,20 +60,25 @@ class MessageModel extends Database implements IModel
       return $this->select($query, ["ii", $id, $limit]);
     }
 
-    if (array_key_exists('search', $args)) {
-      $search = "%" . $args['search'] . "%";
-      $query = $this->baseQuery . <<<SQL
-      WHERE
-          text LIKE ?
-      ORDER BY name ASC LIMIT ?
-      SQL;
-
-      return $this->select($query, ["si", $search, $limit]);
-    }
-
-    $query = $this->baseQuery . <<<SQL
+    $query = $this->baseQuerySelect . $this->baseQueryGroupBy . <<<SQL
       ORDER BY created_at DESC LIMIT ?
     SQL;
+    if (array_key_exists('search', $args)) {
+      $search = "%" . $args['search'] . "%";
+      $searchType = $args['search_type'] ?? 'all';
+
+      if ($searchType === 'all') {
+        $query = $this->baseQuerySelect . <<<SQL
+          WHERE
+              text LIKE ?
+        SQL . $this->baseQueryGroupBy . <<<SQL
+          ORDER BY created_at DESC LIMIT ?
+        SQL;
+
+        return $this->select($query, ["si", $search, $limit]);
+      }
+    }
+
     return $this->select($query, ["i", $limit]);
   }
 
