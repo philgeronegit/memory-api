@@ -15,7 +15,6 @@ CREATE TABLE programming_language(
 CREATE TABLE technical_skill(
    id_technical_skill INT AUTO_INCREMENT,
    name VARCHAR(100) ,
-   year_experience TINYINT,
    PRIMARY KEY(id_technical_skill),
    UNIQUE(name)
 );
@@ -23,6 +22,7 @@ CREATE TABLE technical_skill(
 CREATE TABLE role(
    id_role INT AUTO_INCREMENT,
    name VARCHAR(50) ,
+   role VARCHAR(50)  NOT NULL,
    PRIMARY KEY(id_role),
    UNIQUE(name)
 );
@@ -43,11 +43,18 @@ CREATE TABLE status(
    PRIMARY KEY(id_status)
 );
 
-CREATE TABLE user_(
+CREATE TABLE message(
+   id_message INT AUTO_INCREMENT,
+   text VARCHAR(250)  NOT NULL,
+   created_at DATETIME NOT NULL,
+   PRIMARY KEY(id_message)
+);
+
+CREATE TABLE user(
    id_user INT AUTO_INCREMENT,
    username VARCHAR(50)  NOT NULL,
    email VARCHAR(50) ,
-   password VARCHAR(50)  NOT NULL,
+   password VARCHAR(255)  NOT NULL,
    created_at DATETIME NOT NULL,
    is_admin BOOLEAN,
    avatar_url VARCHAR(100) ,
@@ -105,7 +112,6 @@ CREATE TABLE note(
    id_item INT,
    type enum('text', 'image', 'code'),
    is_public BOOLEAN,
-   like_count TINYINT,
    id_user INT NOT NULL,
    id_project INT,
    id_programming_language INT,
@@ -118,9 +124,10 @@ CREATE TABLE note(
 
 CREATE TABLE task(
    id_item INT,
-   is_done BOOLEAN,
+   done_at DATETIME,
    priority ENUM('low', 'medium', 'high'),
-   due_date DATETIME,
+   due_at DATETIME,
+   task_order TINYINT,
    id_project INT NOT NULL,
    id_executive INT NOT NULL,
    id_developer INT NOT NULL,
@@ -152,6 +159,7 @@ CREATE TABLE projects(
 CREATE TABLE skills(
    id_technical_skill INT,
    id_user INT,
+   year_experience TINYINT,
    PRIMARY KEY(id_technical_skill, id_user),
    FOREIGN KEY(id_technical_skill) REFERENCES technical_skill(id_technical_skill),
    FOREIGN KEY(id_user) REFERENCES developer(id_user)
@@ -163,4 +171,31 @@ CREATE TABLE shared(
    PRIMARY KEY(id_user, id_item),
    FOREIGN KEY(id_user) REFERENCES user_(id_user),
    FOREIGN KEY(id_item) REFERENCES note(id_item)
+);
+
+CREATE TABLE comment_scores(
+   id_comment INT,
+   id_user INT,
+   score TINYINT,
+   PRIMARY KEY(id_comment, id_user),
+   FOREIGN KEY(id_comment) REFERENCES comment(id_comment),
+   FOREIGN KEY(id_user) REFERENCES user_(id_user)
+);
+
+CREATE TABLE note_scores(
+   id_user INT,
+   id_item INT,
+   score TINYINT,
+   PRIMARY KEY(id_user, id_item),
+   FOREIGN KEY(id_user) REFERENCES user_(id_user),
+   FOREIGN KEY(id_item) REFERENCES note(id_item)
+);
+
+CREATE TABLE messages(
+   id_user INT,
+   id_message INT,
+   read_at DATETIME,
+   PRIMARY KEY(id_user, id_message),
+   FOREIGN KEY(id_user) REFERENCES user_(id_user),
+   FOREIGN KEY(id_message) REFERENCES message(id_message)
 );
