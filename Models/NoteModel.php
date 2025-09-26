@@ -57,11 +57,98 @@ class NoteModel extends Database implements IModel
   public function getAll($args)
   {
     $limit = $args['limit'];
+    if (array_key_exists('id', $args)) {
+      $id = $args['id'];
+      $count = $args['count'] ?? false;
+      if ($count) {
+        $query = <<<SQL
+          SELECT
+              DATE_FORMAT(created_at, '%Y-%m') AS month,
+              CASE
+                  WHEN MONTH(created_at) = 1 THEN 'Janvier'
+                  WHEN MONTH(created_at) = 2 THEN 'Février'
+                  WHEN MONTH(created_at) = 3 THEN 'Mars'
+                  WHEN MONTH(created_at) = 4 THEN 'Avril'
+                  WHEN MONTH(created_at) = 5 THEN 'Mai'
+                  WHEN MONTH(created_at) = 6 THEN 'Juin'
+                  WHEN MONTH(created_at) = 7 THEN 'Juillet'
+                  WHEN MONTH(created_at) = 8 THEN 'Août'
+                  WHEN MONTH(created_at) = 9 THEN 'Septembre'
+                  WHEN MONTH(created_at) = 10 THEN 'Octobre'
+                  WHEN MONTH(created_at) = 11 THEN 'Novembre'
+                  WHEN MONTH(created_at) = 12 THEN 'Décembre'
+              END AS month_name,
+              COUNT(*) AS item_count
+          FROM
+              item
+                  JOIN
+              note ON note.id_item = item.id_item
+          WHERE
+              id_user = ?
+          GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+          ORDER BY month DESC
+          LIMIT 6
+        SQL;
+        return $this->select($query, ["i", $id]);
+      }
+
+      $query = <<<SQL
+        WITH user_projects AS (
+          -- Get all project IDs that the user is a member of
+          SELECT id_project
+          FROM projects
+          WHERE id_user = ?
+        ),
+        user_items AS (
+          -- Get all item IDs that the user owns
+          SELECT id_item, 'owned' AS access_type
+          FROM note
+          WHERE id_user = ?
+
+          UNION
+
+          -- Get all item IDs that are shared with the user
+          SELECT id_item, 'shared' AS access_type
+          FROM shared
+          WHERE id_user = ?
+
+          UNION
+
+          -- Get all item IDs from projects the user is a member of
+          SELECT note.id_item, 'project_member' AS access_type
+          FROM note
+          JOIN user_projects ON user_projects.id_project = note.id_project
+          WHERE note.id_user != ?
+        )
+        SELECT
+          item.id_item AS id_note,
+          item.title,
+          item.description AS content,
+          note.type,
+          note.is_public,
+          item.created_at,
+          note.id_project,
+          project.name AS project_name,
+          note.id_user,
+          user.username,
+          user_items.access_type
+        FROM user_items
+        JOIN item ON item.id_item = user_items.id_item
+        JOIN note ON note.id_item = item.id_item
+        JOIN user ON user.id_user = note.id_user
+        JOIN project ON project.id_project = note.id_project
+        WHERE note.is_public = true OR note.id_user = ?
+        ORDER BY created_at DESC LIMIT ?
+      SQL;
+
+      return $this->select($query, ["iiiiii", $id, $id, $id, $id, $id, $limit]);
+    }
+
     if (array_key_exists('search', $args)) {
       $search = "%" . $args['search'] . "%";
       $query = $this->baseQuery . <<<SQL
       WHERE
-          title LIKE ? OR description LIKE ?
+          item.title LIKE ? OR item.description LIKE ?
       ORDER BY id_note ASC LIMIT ?
       SQL;
 
