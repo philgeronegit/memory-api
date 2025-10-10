@@ -39,6 +39,7 @@ class NoteController extends BaseController
       $content = $this->getRequestBody('content');
       $is_public = $this->getRequestBody('is_public');
       $id_project = $this->getRequestBody('id_project');
+      $id_programming_language = $this->getRequestBody('id_programming_language');
       return $this->model->modify(
         array(
           'id' => $id,
@@ -46,7 +47,22 @@ class NoteController extends BaseController
           'title' => $title,
           'content' => $content,
           'is_public' => $is_public,
+          'id_programming_language' => $id_programming_language,
           'id_project' => $id_project
+        )
+      );
+    });
+  }
+
+  public function shareNoteWithUser(): void
+  {
+    $this->doAction($fn = function () {
+      $id_item = $this->getRequestBody('id_item');
+      $id_user = $this->getRequestBody('id_user');
+      return $this->model->shareNoteWithUser(
+        array(
+          'id_item' => $id_item,
+          'id_user' => $id_user
         )
       );
     });

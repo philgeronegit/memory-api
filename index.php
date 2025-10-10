@@ -137,6 +137,14 @@ if ($hasAdditionalSegment) {
     $objController->listAction($args);
     exit();
   }
+  if ($uri[2] === 'note' and $uri[4] === 'share' and $requestMethod === 'GET') {
+    $objController = new ShareController();
+    $args = array(
+      'id' => $uri[3]
+    );
+    $objController->listAction($args);
+    exit();
+  }
   if ($uri[2] === 'note' and $uri[4] === 'tag' and $requestMethod === 'GET') {
     $objController = new TagController();
     $args = array(
@@ -148,6 +156,11 @@ if ($hasAdditionalSegment) {
   if ($uri[2] === 'note' and $uri[4] === 'score' and $requestMethod === 'POST') {
     $objController = new ScoreController();
     $objController->addAction();
+    exit();
+  }
+  if ($uri[2] === 'note' and $uri[4] === 'share' and $requestMethod === 'POST') {
+    $objController = new NoteController();
+    $objController->shareNoteWithUser();
     exit();
   }
   if ($uri[2] === 'note' and $uri[4] === 'score' and $requestMethod === 'PUT') {
