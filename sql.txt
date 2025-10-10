@@ -58,6 +58,7 @@ CREATE TABLE user(
    created_at DATETIME NOT NULL,
    is_admin BOOLEAN,
    avatar_url VARCHAR(100) ,
+   refresh_token VARCHAR(500) ,
    id_role INT NOT NULL,
    PRIMARY KEY(id_user),
    UNIQUE(username),
@@ -198,4 +199,13 @@ CREATE TABLE messages(
    PRIMARY KEY(id_user, id_message),
    FOREIGN KEY(id_user) REFERENCES user_(id_user),
    FOREIGN KEY(id_message) REFERENCES message(id_message)
+);
+
+CREATE TABLE log(
+   Id_log INT AUTO_INCREMENT,
+   source VARCHAR(50) ,
+   source_id INT,
+   text VARCHAR(100) ,
+   date_time DATETIME NOT NULL,
+   PRIMARY KEY(Id_log)
 );
