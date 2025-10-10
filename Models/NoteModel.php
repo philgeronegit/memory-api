@@ -19,6 +19,7 @@ class NoteModel extends Database implements IModel
         item.updated_at,
         item.archived_at,
         note.id_programming_language,
+        programming_language.name AS programming_language_name,
         note.id_project,
         project.name AS project_name,
         note.id_user,
@@ -34,6 +35,8 @@ class NoteModel extends Database implements IModel
         user ON user.id_user = note.id_user
       JOIN
         project ON project.id_project = note.id_project
+      JOIN
+        programming_language ON programming_language.id_programming_language = note.id_programming_language
       LEFT JOIN
         (SELECT
             id_item, COUNT(*) AS total_likes
@@ -127,6 +130,10 @@ class NoteModel extends Database implements IModel
           note.type,
           note.is_public,
           item.created_at,
+          item.updated_at,
+          item.archived_at,
+          note.id_programming_language,
+          programming_language.name AS programming_language_name,
           note.id_project,
           project.name AS project_name,
           note.id_user,
@@ -137,6 +144,7 @@ class NoteModel extends Database implements IModel
         JOIN note ON note.id_item = item.id_item
         JOIN user ON user.id_user = note.id_user
         JOIN project ON project.id_project = note.id_project
+        JOIN programming_language ON programming_language.id_programming_language = note.id_programming_language
         WHERE note.is_public = true OR note.id_user = ?
         ORDER BY created_at DESC LIMIT ?
       SQL;
@@ -178,6 +186,7 @@ class NoteModel extends Database implements IModel
           item.updated_at,
           item.archived_at,
           note.id_programming_language,
+          programming_language.name AS programming_language_name,
           note.id_project,
           note.id_user,
           user.username,
@@ -186,6 +195,7 @@ class NoteModel extends Database implements IModel
         FROM item
         JOIN note ON note.id_item = item.id_item
         JOIN user ON user.id_user = note.id_user
+        JOIN programming_language ON programming_language.id_programming_language = note.id_programming_language
         LEFT JOIN note_scores ON note_scores.id_item = item.id_item AND note_scores.id_user = ?
         WHERE item.id_item = ?
       SQL;
@@ -260,16 +270,33 @@ class NoteModel extends Database implements IModel
     $content = $paramsArray['content'] ?? $note->content;
     $is_public = $paramsArray['is_public'] ?? $note->is_public;
     $id_project = $paramsArray['id_project'] ?? $note->id_project;
+    $id_programming_language = $paramsArray['id_programming_language'] ?? $note->id_programming_language;
 
     $this->update(
       'UPDATE item SET title = ?, description = ?, updated_at = ? WHERE id_item = ?',
       ["sssi", $title, $content, $now, $id]
     );
     $this->update(
-      'UPDATE note SET is_public = ?, id_project = ? WHERE id_item = ?',
-      ["iii", $is_public, $id_project, $id]
+      'UPDATE note SET is_public = ?, id_project = ?, id_programming_language = ? WHERE id_item = ?',
+      ["iiii", $is_public, $id_project, $id_programming_language, $id]
     );
 
     return $this->selectOne($query, ["i", $id]);
+  }
+
+  public function shareNoteWithUser($paramsArray)
+  {
+    $id_item = $paramsArray['id_item'];
+    $id_user = $paramsArray['id_user'];
+
+    $this->insert(
+      "INSERT INTO shared (id_item, id_user) VALUES (?, ?)",
+      ["ii", $id_item, $id_user]
+    );
+
+    $query = $this->baseQuery . <<<SQL
+    WHERE item.id_item = ?
+    SQL;
+    return $this->selectOne($query, ["i", $id_item]);
   }
 }
