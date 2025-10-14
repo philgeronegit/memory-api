@@ -16,6 +16,13 @@ class UserController extends BaseController
       $id_role = $this->getRequestBody('id_role');
       $is_admin = $this->getRequestBody('is_admin');
       $password = $this->getRequestBody('password');
+      // Check if email already exists to prevent duplicates
+      $stmt = $this->model->db->prepare("SELECT id FROM user WHERE email = ?");
+      $stmt->execute([$email]);
+      if ($stmt->fetch(PDO::FETCH_ASSOC)) {
+        $this->sendOutput(null, ['error' => 'Email already exists'], 409);
+        return;
+      }
       return $this->model->add(array(
         'username' => $username,
         'email' =>  $email,
