@@ -24,6 +24,23 @@ class UserModelTest extends MemoryTestCase
         $this->assertIsObject($result);
     }
 
+    public function testAddUser() {
+        $userModel = new UserModel();
+        $username = 'testuser_' . uniqid();
+        $userData = [
+            'username' => $username,
+            'email' => $username . '@example.com',
+            'avatar_url' => 'http://example.com/avatar.jpg',
+            'id_role' => 1,
+            'is_admin' => 0,
+            'password' => 'password123'
+        ];
+
+        $addedUser = $userModel->add($userData);
+        $this->assertIsObject($addedUser);
+        $this->assertObjectHasProperty('id_user', $addedUser);
+    }
+
     public function testAddAndRemoveUser()
     {
         $userModel = new UserModel();
