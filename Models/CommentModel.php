@@ -78,7 +78,7 @@ class CommentModel extends Database implements IModel
 
   public function getOne($id, $args = null)
   {
-    $query = $this->baseQuery . " WHERE id_comment = ?";
+    $query = $this->baseQuery . " WHERE c.id_comment = ?";
 
     return $this->selectOne($query, ["i", $id]);
   }
