@@ -15,7 +15,7 @@ class ProjectModel extends Database implements IModel
         description,
         project.created_at,
         project.id_user AS created_by_id,
-        user.username AS created_by_name,
+        creator.username AS created_by_name,
         modified_at as updated_at,
         archived_at,
         group_concat(projects.id_user) as id_users,
@@ -29,6 +29,7 @@ class ProjectModel extends Database implements IModel
         ) AS users_json,
         (SELECT group_concat(id_item) FROM note WHERE note.id_project = project.id_project) as id_notes
       FROM project
+      LEFT JOIN user AS creator ON creator.id_user = project.id_user
       LEFT JOIN projects ON projects.id_project = project.id_project
       LEFT JOIN user ON user.id_user = projects.id_user
       GROUP by project.id_project
@@ -47,10 +48,11 @@ class ProjectModel extends Database implements IModel
           description,
           project.created_at,
           project.id_user AS created_by_id,
-          user.username AS created_by_name,
+          creator.username AS created_by_name,
           modified_at as updated_at,
           archived_at
         FROM project
+        LEFT JOIN user AS creator ON creator.id_user = project.id_user
         LEFT JOIN projects ON projects.id_project = project.id_project
         LEFT JOIN user ON user.id_user = projects.id_user
         WHERE projects.id_user = ?
@@ -69,7 +71,21 @@ class ProjectModel extends Database implements IModel
 
   public function getOne($id, $args = null)
   {
-    return $this->selectOne($this->baseQuery . " WHERE id_project = ?", ["i", $id]);
+    $query = <<<SQL
+            SELECT
+          project.id_project,
+          name,
+          description,
+          project.created_at,
+          project.id_user AS created_by_id,
+          creator.username AS created_by_name,
+          modified_at as updated_at,
+          archived_at
+        FROM project
+        LEFT JOIN user AS creator ON creator.id_user = project.id_user
+        WHERE project.id_project = ?
+    SQL;
+    return $this->selectOne($query, ["i", $id]);
   }
 
   public function remove($id)

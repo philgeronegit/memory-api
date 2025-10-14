@@ -69,7 +69,7 @@ CREATE TABLE user(
 CREATE TABLE executive(
    id_user INT,
    PRIMARY KEY(id_user),
-   FOREIGN KEY(id_user) REFERENCES user_(id_user)
+   FOREIGN KEY(id_user) REFERENCES user(id_user)
 );
 
 CREATE TABLE project_manager(
@@ -81,7 +81,7 @@ CREATE TABLE project_manager(
 CREATE TABLE developer(
    id_user INT,
    PRIMARY KEY(id_user),
-   FOREIGN KEY(id_user) REFERENCES user_(id_user)
+   FOREIGN KEY(id_user) REFERENCES user(id_user)
 );
 
 CREATE TABLE project(
@@ -105,7 +105,7 @@ CREATE TABLE comment(
    id_user INT NOT NULL,
    id_item INT NOT NULL,
    PRIMARY KEY(id_comment),
-   FOREIGN KEY(id_user) REFERENCES user_(id_user),
+   FOREIGN KEY(id_user) REFERENCES user(id_user),
    FOREIGN KEY(id_item) REFERENCES item(id_item)
 );
 
@@ -118,7 +118,7 @@ CREATE TABLE note(
    id_programming_language INT,
    PRIMARY KEY(id_item),
    FOREIGN KEY(id_item) REFERENCES item(id_item),
-   FOREIGN KEY(id_user) REFERENCES user_(id_user),
+   FOREIGN KEY(id_user) REFERENCES user(id_user),
    FOREIGN KEY(id_project) REFERENCES project(id_project),
    FOREIGN KEY(id_programming_language) REFERENCES programming_language(id_programming_language)
 );
@@ -154,7 +154,7 @@ CREATE TABLE projects(
    id_user INT,
    PRIMARY KEY(id_project, id_user),
    FOREIGN KEY(id_project) REFERENCES project(id_project),
-   FOREIGN KEY(id_user) REFERENCES user_(id_user)
+   FOREIGN KEY(id_user) REFERENCES user(id_user)
 );
 
 CREATE TABLE skills(
@@ -170,7 +170,7 @@ CREATE TABLE shared(
    id_user INT,
    id_item INT,
    PRIMARY KEY(id_user, id_item),
-   FOREIGN KEY(id_user) REFERENCES user_(id_user),
+   FOREIGN KEY(id_user) REFERENCES user(id_user),
    FOREIGN KEY(id_item) REFERENCES note(id_item)
 );
 
@@ -180,7 +180,7 @@ CREATE TABLE comment_scores(
    score TINYINT,
    PRIMARY KEY(id_comment, id_user),
    FOREIGN KEY(id_comment) REFERENCES comment(id_comment),
-   FOREIGN KEY(id_user) REFERENCES user_(id_user)
+   FOREIGN KEY(id_user) REFERENCES user(id_user)
 );
 
 CREATE TABLE note_scores(
@@ -188,7 +188,7 @@ CREATE TABLE note_scores(
    id_item INT,
    score TINYINT,
    PRIMARY KEY(id_user, id_item),
-   FOREIGN KEY(id_user) REFERENCES user_(id_user),
+   FOREIGN KEY(id_user) REFERENCES user(id_user),
    FOREIGN KEY(id_item) REFERENCES note(id_item)
 );
 
@@ -197,7 +197,7 @@ CREATE TABLE messages(
    id_message INT,
    read_at DATETIME,
    PRIMARY KEY(id_user, id_message),
-   FOREIGN KEY(id_user) REFERENCES user_(id_user),
+   FOREIGN KEY(id_user) REFERENCES user(id_user),
    FOREIGN KEY(id_message) REFERENCES message(id_message)
 );
 

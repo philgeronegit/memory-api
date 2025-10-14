@@ -1,0 +1,60 @@
+name: CI with Docker
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: memory_test
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Build Docker image
+      run: docker build -t memory-api .
+
+    - name: Wait for MySQL to be ready
+      run: |
+        for i in {1..30}; do
+          if docker run --rm --network host mysql:8.0 mysqladmin ping -h 127.0.0.1 -u root -proot > /dev/null 2>&1; then
+            break
+          fi
+          echo "Waiting for MySQL to be ready..."
+          sleep 2
+        done
+
+    - name: Create test database schema
+      run: |
+        docker run --rm --network host -v $(pwd):/app mysql:8.0 sh -c "
+          mysql -h 127.0.0.1 -u root -proot memory_test < /app/SQL/tables.sql &&
+          mysql -h 127.0.0.1 -u root -proot memory_test < /app/SQL/functions.sql &&
+          mysql -h 127.0.0.1 -u root -proot memory_test < /app/SQL/views.sql &&
+          mysql -h 127.0.0.1 -u root -proot memory_test < /app/SQL/utility-views.sql &&
+          mysql -h 127.0.0.1 -u root -proot memory_test < /app/SQL/triggers.sql
+        "
+
+    - name: Run tests in Docker container
+      run: |
+        docker run --rm --network host -v $(pwd):/app \
+          -e DB_HOST=127.0.0.1 \
+          -e DB_USERNAME=root \
+          -e DB_PASSWORD=root \
+          -e DB_DATABASE=memory_test \
+          -e JWT_SECRET_KEY=test_jwt_secret_key_that_is_at_least_256_bits_long_for_testing_purposes_only_and_should_be_long_enough \
+          -e JWT_ALGORITHM=HS256 \
+          -e JWT_EXPIRATION_TIME=3600 \
+          -e JWT_ISSUER=memory-api-test \
+          -e JWT_AUDIENCE=memory-api-test-users \
+          memory-api \
+          ./vendor/bin/phpunit
