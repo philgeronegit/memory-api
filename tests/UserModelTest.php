@@ -45,7 +45,7 @@ class UserModelTest extends MemoryTestCase
         print_r("Added user ID: $userId\n");
 
         // wait for the trigger to add a row in messages table
-        // sleep(1);
+        sleep(1);
 
         // remove all messages for this user in table messages
         $messageModel = new MessageModel();
