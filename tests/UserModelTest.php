@@ -24,14 +24,25 @@ class UserModelTest extends MemoryTestCase
         $this->assertIsObject($result);
     }
 
+    private function getDeveloperRoleId() {
+      $roleModel = new RoleModel();
+      $roles = $roleModel->getAll(['search' => 'admin', 'limit' => 10]);
+      $this->assertCount(1, $roles);
+      $role = $roles[0];
+      $idRole = $role['id_role'];
+      return $idRole;
+    }
+
     public function testAddUser() {
         $userModel = new UserModel();
+        $id_role = $this->getDeveloperRoleId();
+
         $username = 'testuser_' . uniqid();
         $userData = [
             'username' => $username,
             'email' => $username . '@example.com',
             'avatar_url' => 'http://example.com/avatar.jpg',
-            'id_role' => 1,
+            'id_role' => $id_role,
             'is_admin' => 0,
             'password' => 'password123'
         ];
@@ -44,12 +55,14 @@ class UserModelTest extends MemoryTestCase
     public function testAddAndRemoveUser()
     {
         $userModel = new UserModel();
+        $id_role = $this->getDeveloperRoleId();
+
         $username = 'testuser_' . uniqid();
         $userData = [
             'username' => $username,
             'email' => $username . '@example.com',
             'avatar_url' => 'http://example.com/avatar.jpg',
-            'id_role' => 1,
+            'id_role' => $id_role,
             'is_admin' => 0,
             'password' => 'password123'
         ];
