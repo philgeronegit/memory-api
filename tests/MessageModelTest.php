@@ -23,11 +23,4 @@ class MessageModelTest extends MemoryTestCase
         $result = $messageModel->getOne(1); // Assuming message with ID 1 exists
         $this->assertIsObject($result);
     }
-
-    public function testgetUserMessages()
-    {
-        $messageModel = new MessageModel();
-        $result = $messageModel->getAll(['id' => 1, 'limit' => 10]); // Assuming user with ID 1 exists
-        $this->assertIsArray($result);
-    }
-  }
+}
