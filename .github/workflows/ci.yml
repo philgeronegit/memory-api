@@ -50,6 +50,7 @@ jobs:
         mysql -h 127.0.0.1 -u root -proot memory_test < views.sql
         mysql -h 127.0.0.1 -u root -proot memory_test < utility-views.sql
         mysql -h 127.0.0.1 -u root -proot memory_test < triggers.sql
+        mysql -h 127.0.0.1 -u root -proot memory_test < insert.sql
 
     - name: Create .env file for testing
       run: |
