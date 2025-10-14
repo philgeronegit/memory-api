@@ -7,6 +7,13 @@ class RoleModel extends Database implements IModel
   public function getAll($args)
   {
     $limit = $args['limit'];
+
+    if (array_key_exists('search', $args)) {
+      $search = "%" . $args['search'] . "%";
+      $query = "SELECT * FROM role WHERE name LIKE ? ORDER BY name ASC LIMIT ?";
+      return $this->select($query, ["si", $search, $limit]);
+    }
+
     return $this->select("SELECT * FROM role ORDER BY name ASC LIMIT ?", ["i", $limit]);
   }
 
