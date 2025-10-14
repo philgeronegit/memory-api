@@ -45,12 +45,12 @@ jobs:
 
     - name: Create test database schema
       run: |
-        mysql -h 127.0.0.1 -u root -proot memory_test < tables.sql
-        mysql -h 127.0.0.1 -u root -proot memory_test < functions.sql
-        mysql -h 127.0.0.1 -u root -proot memory_test < views.sql
-        mysql -h 127.0.0.1 -u root -proot memory_test < utility-views.sql
-        mysql -h 127.0.0.1 -u root -proot memory_test < triggers.sql
-        mysql -h 127.0.0.1 -u root -proot memory_test < insert.sql
+        mysql -h 127.0.0.1 -u root -proot memory_test < SQL/tables.sql
+        mysql -h 127.0.0.1 -u root -proot memory_test < SQL/functions.sql
+        mysql -h 127.0.0.1 -u root -proot memory_test < SQL/views.sql
+        mysql -h 127.0.0.1 -u root -proot memory_test < SQL/utility-views.sql
+        mysql -h 127.0.0.1 -u root -proot memory_test < SQL/triggers.sql
+        mysql -h 127.0.0.1 -u root -proot memory_test < SQL/insert.sql
 
     - name: Create .env file for testing
       run: |
