@@ -28,6 +28,21 @@ class BaseController
   }
 
   /**
+   * Check if the authenticated user has permission to perform the action.
+   * Only users with roles 'projectManager' or 'admin' are allowed.
+   *
+   * @return bool
+   */
+  protected function hasUserModificationPermission(): bool {
+    $currentUser = $this->getAuthenticatedUser();
+
+    if (!in_array($currentUser->role, ['projectManager', 'admin'])) {
+        return false;
+    }
+    return true;
+  }
+
+  /**
    * Get URI elements.
    * Returns an array of URI elements.
    *
