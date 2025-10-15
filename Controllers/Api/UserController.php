@@ -27,7 +27,8 @@ class UserController extends BaseController
         WHERE email = ?
       SQL;
       $existingUser = $this->model->selectOne($query, ["s", $email]);
-      if ($existingUser) {
+      // check if existing user has an id_user
+      if ($existingUser && isset($existingUser->id_user)) {
         $this->sendOutput('', array('HTTP/1.1 409 Email already exists'));
         return;
       }
