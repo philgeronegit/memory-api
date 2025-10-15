@@ -16,6 +16,12 @@ class NoteController extends BaseController
       $id_project = $this->getRequestBody('id_project');
       $is_public = $this->getRequestBody('is_public');
       $id_programming_language = $this->getRequestBody('id_programming_language');
+
+      // Validate required fields to prevent incomplete note creation
+      if (empty($title) || empty($content) || empty($type) || empty($id_user)) {
+          throw new Exception("Missing required fields for note creation.");
+      }
+
       return $this->model->add(
         array(
           'title' => $title,
@@ -30,16 +36,37 @@ class NoteController extends BaseController
     });
   }
 
+  protected function hasUpdateOrRemovePermissions($noteId): bool {
+    $currentUserId = $this->getCurrentUserId();
+    $note = $this->model->getOne($noteId);
+
+    $isCurrentUser = $note->id_user === $currentUserId;
+    $hasPermission = $this->hasPermission('admin');
+
+    return $isCurrentUser || $hasPermission;
+  }
+
   public function updateAction(): void
   {
     $this->doAction($fn = function () {
       $id = $this->getUriSegments()[3];
+
+      if (!$this->hasUpdateOrRemovePermissions($id)) {
+        throw new Exception("Unauthorized: You do not have permission to update this note.");
+      }
+
       $user_id = $this->getRequestBody('user_id');
       $title = $this->getRequestBody('title');
       $content = $this->getRequestBody('content');
       $is_public = $this->getRequestBody('is_public');
       $id_project = $this->getRequestBody('id_project');
       $id_programming_language = $this->getRequestBody('id_programming_language');
+
+      // Validate required fields to prevent incomplete note updates
+      if (empty($id) || (empty($title) && empty($content))) {
+          throw new Exception("Missing required fields for note update.");
+      }
+
       return $this->model->modify(
         array(
           'id' => $id,
@@ -65,6 +92,19 @@ class NoteController extends BaseController
           'id_user' => $id_user
         )
       );
+    });
+  }
+
+  public function removeAction(): void
+  {
+    $this->doAction($fn = function () {
+      $id = $this->getUriSegments()[3];
+
+      if (!$this->hasUpdateOrRemovePermissions($id)) {
+        throw new Exception("Unauthorized: You do not have permission to delete this note.");
+      }
+
+      return $this->model->remove($id);
     });
   }
 }

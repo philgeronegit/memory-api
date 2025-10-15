@@ -43,6 +43,31 @@ class BaseController
   }
 
   /**
+   * Check if a user has a specific role/permission.
+   *
+   * @param int $userId
+   * @param string $requiredRole
+   * @return bool
+   */
+  protected function hasPermission($requiredRole): bool {
+    $user = $this->getAuthenticatedUser();
+
+    // Check if the user's role matches the required role
+    return $user->role === $requiredRole;
+  }
+
+  /**
+   * Get the ID of the currently authenticated user.
+   *
+   * @return int|null
+   */
+  protected function getCurrentUserId()
+  {
+    $currentUser = $this->getAuthenticatedUser();
+    return $currentUser ? $currentUser->id_user : null;
+  }
+
+  /**
    * Get URI elements.
    * Returns an array of URI elements.
    *
