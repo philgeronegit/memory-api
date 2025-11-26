@@ -129,6 +129,11 @@ if ($hasAdditionalSegment) {
     $objController->listAction($args);
     exit();
   }
+  if ($uri[2] === 'user' and $uri[4] === 'project' and $requestMethod === 'POST') {
+    $objController = new ProjectController();
+    $objController->addProjectToUser();
+    exit();
+  }
   if ($uri[2] === 'note' and $uri[4] === 'comment' and $requestMethod === 'GET') {
     $objController = new CommentController();
     $args = array(
