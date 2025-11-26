@@ -36,6 +36,12 @@ class NoteController extends BaseController
     });
   }
 
+  /**
+   * Check if the current user has permission to update or remove the note.
+   * A user can update or remove a note if they are the owner of the note or have admin permissions.
+   * @param int $noteId The ID of the note to check permissions for.
+   * @return bool True if the user has permission, false otherwise.
+   */
   protected function hasUpdateOrRemovePermissions($noteId): bool {
     $currentUserId = $this->getCurrentUserId();
     $note = $this->model->getOne($noteId);

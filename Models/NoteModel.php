@@ -299,4 +299,42 @@ class NoteModel extends Database implements IModel
     SQL;
     return $this->selectOne($query, ["i", $id_item]);
   }
+
+  /**
+   * Check if a user has access to a note.
+   * User has access if they:
+   * 1. Created the note (id_user matches)
+   * 2. Note is shared with them (exists in shared table)
+   * 3. They are a member of the project the note belongs to
+   *
+   * @param int $id_item Note/item ID
+   * @param int $id_user User ID
+   * @return bool True if user has access, false otherwise
+   */
+  public function userHasNoteAccess($id_item, $id_user)
+  {
+    $query = <<<SQL
+      SELECT 1
+      FROM note
+      WHERE id_item = ?
+      AND (
+        -- User created the note
+        id_user = ?
+        -- OR Note is shared with user
+        OR EXISTS (
+          SELECT 1 FROM shared
+          WHERE id_item = ? AND id_user = ?
+        )
+        -- OR User is a member of the project the note belongs to
+        OR EXISTS (
+          SELECT 1 FROM projects
+          WHERE id_project = note.id_project AND id_user = ?
+        )
+      )
+      LIMIT 1
+    SQL;
+
+    $result = $this->selectOne($query, ["iiiii", $id_item, $id_user, $id_item, $id_user, $id_user]);
+    return !empty((array)$result);
+  }
 }
