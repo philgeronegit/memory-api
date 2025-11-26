@@ -57,7 +57,7 @@ class DeveloperModel extends Database implements IModel
     $username = $paramsArray['username'];
     $email = $paramsArray['email'];
     $avatar_url = $paramsArray['avatar_url'];
-    $role_id = $paramsArray['role_id'];
+    $id_role = $paramsArray['role_id'];
     $is_admin = $paramsArray['is_admin'];
     $now = date('Y-m-d H:i:s');
     $id = $this->insert(

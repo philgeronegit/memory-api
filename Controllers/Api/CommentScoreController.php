@@ -38,7 +38,7 @@ class CommentScoreController extends BaseController
       $note_id = $this->getUriSegments()[3];
       $user_id = $this->getUriSegments()[5];
       $score = $this->getRequestBody('score');
-      return $this->model->add(array('note_id' => $note_id, 'user_id' => $tag_id, 'score' => $score));
+      return $this->model->add(array('note_id' => $note_id, 'user_id' => $user_id, 'score' => $score));
     });
   }
 }
