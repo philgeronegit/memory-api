@@ -45,7 +45,6 @@ class BaseController
   /**
    * Check if a user has a specific role/permission.
    *
-   * @param int $userId
    * @param string $requiredRole
    * @return bool
    */
@@ -121,8 +120,8 @@ class BaseController
   /**
    * Send API output.
    *
-   * @param mixed $data
-   * @param string $httpHeader
+    * @param mixed $data
+    * @param array $httpHeaders
    */
   protected function sendOutput($data, $httpHeaders = array())
   {
@@ -135,6 +134,12 @@ class BaseController
     exit;
   }
 
+  /**
+   * Get a query string parameter value.
+   * @param string $name
+   * @param mixed $default
+   * @return mixed
+   */
   protected function getQueryString($name, $default = null)
   {
     $arrQueryStringParams = $this->getQueryStringParams();
@@ -149,6 +154,8 @@ class BaseController
   protected function doAction($fn, $args = [])
   {
     $strErrorDesc = '';
+    $strErrorHeader = 'HTTP/1.1 500 Internal Server Error';
+    $responseData = '';
     $requestMethod = $_SERVER["REQUEST_METHOD"];
     $arrQueryStringParams = $this->getQueryStringParams();
 
