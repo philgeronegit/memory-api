@@ -17,7 +17,7 @@ class LoginController extends BaseController
         return $return;
       }
       $this->sendOutput(
-        json_encode(array("error" => "Invalid username or password")),
+        json_encode(array("error" => "Invalid credentials")),
         array('Content-Type: application/json', 'HTTP/1.1 401 Unauthorized')
       );
     });

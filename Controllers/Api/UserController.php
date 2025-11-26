@@ -9,6 +9,10 @@ class UserController extends BaseController
   public function addAction(): void
   {
     $this->doAction($fn = function () {
+      if (!$this->hasUserModificationPermission()) {
+          $this->sendOutput('Unauthorized to update this user', array('HTTP/1.1 403 Forbidden'));
+          return;
+      }
 
       $username = $this->getRequestBody('username');
       $email = $this->getRequestBody('email');
@@ -16,6 +20,18 @@ class UserController extends BaseController
       $id_role = $this->getRequestBody('id_role');
       $is_admin = $this->getRequestBody('is_admin');
       $password = $this->getRequestBody('password');
+      // Check if email already exists to prevent duplicates
+      $query = <<<SQL
+        SELECT id_user
+        FROM user
+        WHERE email = ?
+      SQL;
+      $existingUser = $this->model->selectOne($query, ["s", $email]);
+      // check if existing user has an id_user
+      if ($existingUser && isset($existingUser->id_user)) {
+        $this->sendOutput('', array('HTTP/1.1 409 Email already exists'));
+        return;
+      }
       return $this->model->add(array(
         'username' => $username,
         'email' =>  $email,
@@ -30,6 +46,11 @@ class UserController extends BaseController
   public function updateAction(): void
   {
     $this->doAction($fn = function () {
+      if (!$this->hasUserModificationPermission()) {
+          $this->sendOutput('Unauthorized to update this user', array('HTTP/1.1 403 Forbidden'));
+          return;
+      }
+
       $id = $this->getUriSegments()[3];
       $username = $this->getRequestBody('username');
       $email = $this->getRequestBody('email');

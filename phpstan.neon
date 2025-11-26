@@ -1,0 +1,14 @@
+parameters:
+    level: 3
+    paths:
+        - Controllers/
+        - Models/
+        - inc/
+        - index.php
+    excludePaths:
+        - vendor/
+        - static/
+        - uploads/
+    # Fewer workers reduces peak memory while still parallelizing
+    parallel:
+        maximumNumberOfProcesses: 2

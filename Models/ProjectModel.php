@@ -130,4 +130,32 @@ class ProjectModel extends Database implements IModel
 
     return $this->selectOne($query, ["i", $id]);
   }
+
+  /**
+   * Add users to a project
+   * @param array $paramsArray
+   * @return bool
+   */
+  public function addToProject($paramsArray)
+  {
+    $project_id = $paramsArray['project_id'];
+    $user_ids = $paramsArray['user_ids'];
+
+    if (!is_array($user_ids)) {
+      throw new InvalidArgumentException('user_ids must be an array.');
+    }
+
+    // delete all users for the project
+    $this->delete("DELETE FROM projects WHERE id_project = ?", ["i", $project_id]);
+
+    // insert new users
+    foreach ($user_ids as $user_id) {
+      $this->insert(
+        "INSERT INTO projects (id_user, id_project) VALUES (?, ?)",
+        ["ii", $user_id, $project_id]
+      );
+    }
+
+    return true;
+  }
 }

@@ -89,6 +89,23 @@ class UserModel extends Database implements IModel
       ["sssiiss", $username, $email, $avatar_url, $id_role, $is_admin, $hashed_password, $now]
     );
 
+    $searchRoleQuery = <<<SQL
+      SELECT role
+      FROM role
+      WHERE id_role = ?
+    SQL;
+    $role = $this->selectOne($searchRoleQuery, ["i", $id_role]);
+    if ($role->role === 'projectManager') {
+      $this->insert(
+        "INSERT INTO executive (id_user) VALUES (?)",
+        ["i", $id]
+      );
+      $this->insert(
+        "INSERT INTO project_manager (id_user) VALUES (?)",
+        ["i", $id]
+      );
+    }
+
     $query = $this->baseQuery . <<<SQL
     WHERE id_user = ?
     SQL;

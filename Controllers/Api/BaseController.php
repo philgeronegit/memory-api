@@ -28,6 +28,45 @@ class BaseController
   }
 
   /**
+   * Check if the authenticated user has permission to perform the action.
+   * Only users with roles 'projectManager' or 'admin' are allowed.
+   *
+   * @return bool
+   */
+  protected function hasUserModificationPermission(): bool {
+    $currentUser = $this->getAuthenticatedUser();
+
+    if (!in_array($currentUser->role, ['projectManager', 'admin'])) {
+        return false;
+    }
+    return true;
+  }
+
+  /**
+   * Check if a user has a specific role/permission.
+   *
+   * @param string $requiredRole
+   * @return bool
+   */
+  protected function hasPermission($requiredRole): bool {
+    $user = $this->getAuthenticatedUser();
+
+    // Check if the user's role matches the required role
+    return $user->role === $requiredRole;
+  }
+
+  /**
+   * Get the ID of the currently authenticated user.
+   *
+   * @return int|null
+   */
+  protected function getCurrentUserId()
+  {
+    $currentUser = $this->getAuthenticatedUser();
+    return $currentUser ? $currentUser->id_user : null;
+  }
+
+  /**
    * Get URI elements.
    * Returns an array of URI elements.
    *
@@ -81,8 +120,8 @@ class BaseController
   /**
    * Send API output.
    *
-   * @param mixed $data
-   * @param string $httpHeader
+    * @param mixed $data
+    * @param array $httpHeaders
    */
   protected function sendOutput($data, $httpHeaders = array())
   {
@@ -95,6 +134,12 @@ class BaseController
     exit;
   }
 
+  /**
+   * Get a query string parameter value.
+   * @param string $name
+   * @param mixed $default
+   * @return mixed
+   */
   protected function getQueryString($name, $default = null)
   {
     $arrQueryStringParams = $this->getQueryStringParams();
@@ -109,6 +154,8 @@ class BaseController
   protected function doAction($fn, $args = [])
   {
     $strErrorDesc = '';
+    $strErrorHeader = 'HTTP/1.1 500 Internal Server Error';
+    $responseData = '';
     $requestMethod = $_SERVER["REQUEST_METHOD"];
     $arrQueryStringParams = $this->getQueryStringParams();
 

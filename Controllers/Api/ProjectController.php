@@ -33,4 +33,14 @@ class ProjectController extends BaseController
       );
     });
   }
+
+  public function addProjectToUser(): void
+  {
+    $this->doAction($fn = function () {
+      $user_id = $this->getUriSegments()[3];
+      $user_ids = array($user_id);
+      $project_id = $this->getUriSegments()[5];
+      return $this->model->addToProject(array('user_ids' => $user_ids, 'project_id' => $project_id));
+    });
+  }
 }

@@ -148,7 +148,7 @@ class MessageModel extends Database implements IModel
 
     return $this->insert(
       "UPDATE messages SET read_at = ? WHERE id_message = ? AND id_user = ?",
-      ["sii", read_at, $message_id, $user_id]
+      ["sii", $read_at, $message_id, $user_id]
     );
   }
 
