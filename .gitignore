@@ -40,3 +40,14 @@ launch.json
 /static/*
 
 /uploads/*
+
+.phpunit.result.cache
+_update-notifier-last-checked
+
+/npm/_logs/*
+
+.github/**/*.md
+
+*.bak
+/tmp/*
+/plan/*
