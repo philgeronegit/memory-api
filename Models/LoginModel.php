@@ -42,11 +42,10 @@ class LoginModel extends Database
 
     $user = $this->selectOne($query, ["s", $username]);
     $isPasswordValid = false;
-    if ($user) {
-      // Check for encoding issues
+    if ($user->password) {
       $isPasswordValid = password_verify($password, $user->password);
     }
-    if ($user && $isPasswordValid) {
+    if ($isPasswordValid) {
       // Remove password from result before returning
       unset($user->password);
       // Generate JWT token
@@ -128,7 +127,7 @@ class LoginModel extends Database
       // Fetch user
       $query = $this->baseQuery . " WHERE u.id_user = ? AND u.refresh_token = ?";
       $user = $this->selectOne($query, ["is", $userId, $refreshToken]);
-      if ($user) {
+      if ($user->id_user) {
         // Generate new access token
         $newAccessToken = $this->generateJwtToken($user);
         // Optionally generate new refresh token

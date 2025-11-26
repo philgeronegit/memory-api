@@ -95,7 +95,7 @@ class UserModel extends Database implements IModel
       WHERE id_role = ?
     SQL;
     $role = $this->selectOne($searchRoleQuery, ["i", $id_role]);
-    if ($role && $role->role === 'projectManager') {
+    if ($role->role === 'projectManager') {
       $this->insert(
         "INSERT INTO executive (id_user) VALUES (?)",
         ["i", $id]

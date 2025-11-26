@@ -158,7 +158,7 @@ class TaskModel extends Database implements IModel
           $statusQuery = "SELECT id_status FROM status WHERE name = ?";
           $statusResult = $this->selectOne($statusQuery, ["s", $task['status']]);
 
-          if ($statusResult) {
+          if ($statusResult->id_status) {
             $updateQuery .= ", id_status = ?";
             $params[0] .= "i";
             $params[] = $statusResult->id_status;

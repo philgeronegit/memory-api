@@ -52,7 +52,7 @@ class CommentScoreModel extends Database implements IModel
     SQL;
     $existingScore = $this->selectOne($query, ["ii", $id, $user_id]);
     // check is empty object
-    if (is_object($existingScore) && empty((array)$existingScore)) {
+    if (empty((array)$existingScore)) {
       // if it doesn't exist, insert a new score
       $this->insert(
         "INSERT INTO comment_scores (id_item, id_user, score) VALUES (?, ?, ?)",
