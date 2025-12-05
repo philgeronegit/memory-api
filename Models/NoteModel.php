@@ -33,9 +33,9 @@ class NoteModel extends Database implements IModel
         note ON note.id_item = item.id_item
       JOIN
         user ON user.id_user = note.id_user
-      JOIN
+      LEFT JOIN
         project ON project.id_project = note.id_project
-      JOIN
+      LEFT JOIN
         programming_language ON programming_language.id_programming_language = note.id_programming_language
       LEFT JOIN
         (SELECT
@@ -96,33 +96,6 @@ class NoteModel extends Database implements IModel
       }
 
       $query = <<<SQL
-        WITH user_projects AS (
-          -- Get all project IDs that the user is a member of
-          SELECT id_project
-          FROM projects
-          WHERE id_user = ?
-        ),
-        user_items AS (
-          -- Get all item IDs that the user owns
-          SELECT id_item, 'owned' AS access_type
-          FROM note
-          WHERE id_user = ?
-
-          UNION
-
-          -- Get all item IDs that are shared with the user
-          SELECT id_item, 'shared' AS access_type
-          FROM shared
-          WHERE id_user = ?
-
-          UNION
-
-          -- Get all item IDs from projects the user is a member of
-          SELECT note.id_item, 'project_member' AS access_type
-          FROM note
-          JOIN user_projects ON user_projects.id_project = note.id_project
-          WHERE note.id_user != ?
-        )
         SELECT
           item.id_item AS id_note,
           item.title,
@@ -139,17 +112,30 @@ class NoteModel extends Database implements IModel
           note.id_user,
           user.username,
           user_items.access_type
-        FROM user_items
+        FROM (
+          SELECT id_item, 'owned' AS access_type
+          FROM note
+          WHERE id_user = ?
+          UNION
+          SELECT id_item, 'shared' AS access_type
+          FROM shared
+          WHERE id_user = ?
+          UNION
+          SELECT note.id_item, 'project_member' AS access_type
+          FROM note
+          JOIN (SELECT id_project, id_user FROM projects WHERE id_user = ?) AS user_projects ON user_projects.id_project = note.id_project
+          WHERE user_projects.id_user = ? AND note.id_user != ?
+        ) AS user_items
         JOIN item ON item.id_item = user_items.id_item
         JOIN note ON note.id_item = item.id_item
         JOIN user ON user.id_user = note.id_user
-        JOIN project ON project.id_project = note.id_project
-        JOIN programming_language ON programming_language.id_programming_language = note.id_programming_language
+        LEFT JOIN project ON project.id_project = note.id_project
+        LEFT JOIN programming_language ON programming_language.id_programming_language = note.id_programming_language
         WHERE note.is_public = true OR note.id_user = ?
         ORDER BY created_at DESC LIMIT ?
       SQL;
 
-      return $this->select($query, ["iiiiii", $id, $id, $id, $id, $id, $limit]);
+      return $this->select($query, ["iiiiiii", $id, $id, $id, $id, $id, $id, $limit]);
     }
 
     if (array_key_exists('search', $args)) {
@@ -195,7 +181,7 @@ class NoteModel extends Database implements IModel
         FROM item
         JOIN note ON note.id_item = item.id_item
         JOIN user ON user.id_user = note.id_user
-        JOIN programming_language ON programming_language.id_programming_language = note.id_programming_language
+        LEFT JOIN programming_language ON programming_language.id_programming_language = note.id_programming_language
         LEFT JOIN note_scores ON note_scores.id_item = item.id_item AND note_scores.id_user = ?
         WHERE item.id_item = ?
       SQL;
