@@ -10,7 +10,7 @@ class UserController extends BaseController
   {
     $this->doAction($fn = function () {
       if (!$this->hasUserModificationPermission()) {
-          $this->sendOutput('Unauthorized to update this user', array('HTTP/1.1 403 Forbidden'));
+          $this->sendOutput('Unauthorized to add this user', array('HTTP/1.1 403 Forbidden'));
           return;
       }
 
@@ -20,26 +20,21 @@ class UserController extends BaseController
       $id_role = $this->getRequestBody('id_role');
       $is_admin = $this->getRequestBody('is_admin');
       $password = $this->getRequestBody('password');
-      // Check if email already exists to prevent duplicates
-      $query = <<<SQL
-        SELECT id_user
-        FROM user
-        WHERE email = ?
-      SQL;
-      $existingUser = $this->model->selectOne($query, ["s", $email]);
-      // check if existing user has an id_user
-      if ($existingUser && isset($existingUser->id_user)) {
-        $this->sendOutput('', array('HTTP/1.1 409 Email already exists'));
-        return;
-      }
-      return $this->model->add(array(
+
+      $paramsArray = array(
         'username' => $username,
         'email' =>  $email,
         'avatar_url' => $avatar_url,
         'id_role' => $id_role,
         'is_admin' => $is_admin,
         'password' => $password
-      ));
+      );
+      $validationErrors = $this->model->validate($paramsArray);
+      if ($validationErrors['hasErrors']) {
+          $this->sendOutput(['error' => $validationErrors['error']], $validationErrors['httpHeader']);
+          return;
+      }
+      return $this->model->add($paramsArray);
     });
   }
 
@@ -47,7 +42,7 @@ class UserController extends BaseController
   {
     $this->doAction($fn = function () {
       if (!$this->hasUserModificationPermission()) {
-          $this->sendOutput('Unauthorized to update this user', array('HTTP/1.1 403 Forbidden'));
+          $this->sendOutput(['error' => 'Unauthorized to update this user'], array('HTTP/1.1 403 Forbidden'));
           return;
       }
 
