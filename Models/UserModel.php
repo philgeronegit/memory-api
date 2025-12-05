@@ -2,7 +2,7 @@
 require_once PROJECT_ROOT_PATH . "/Models/Database.php";
 require_once PROJECT_ROOT_PATH . "/Models/IModel.php";
 
-class UserModel extends Database implements IModel
+class UserModel extends Database implements IModel, IValidator
 {
   public function __construct()
   {
@@ -21,7 +21,7 @@ class UserModel extends Database implements IModel
           is_admin
       FROM
           user u
-              JOIN
+      JOIN
           role r ON r.id_role = u.id_role
 
       SQL;
@@ -58,6 +58,17 @@ class UserModel extends Database implements IModel
       return $this->select($query, ["si", $search, $limit]);
     }
 
+    if (array_key_exists('id', $args)) {
+      $id = $args['id'];
+      $query = $this->baseQuery . <<<SQL
+        JOIN
+          projects p ON p.id_user = u.id_user
+        WHERE p.id_project = ?
+      SQL;
+
+      return $this->select($query, ["i", $id]);
+    }
+
     return $this->select($query, ["i", $limit]);
   }
 
@@ -70,6 +81,7 @@ class UserModel extends Database implements IModel
 
   public function remove($id)
   {
+    // $this->delete("DELETE FROM developer WHERE id_user = ?", ["i", $id]);
     return $this->delete("DELETE FROM user WHERE id_user = ?", ["i", $id]);
   }
 
@@ -134,5 +146,44 @@ class UserModel extends Database implements IModel
     );
 
     return $this->selectOne($query, ["i", $id]);
+  }
+
+  public function validate($paramsArray): array
+  {
+    $errors = [
+      'hasErrors' => false
+    ];
+
+    // Ensure required fields are present
+    $requiredFields = ['username', 'email', 'id_role', 'password'];
+    $errorMessage = 'The following fields are required: ';
+    foreach ($requiredFields as $field) {
+      if (empty($paramsArray[$field])) {
+          $errorMessage .= $field . ' ';
+      }
+    }
+
+    if ($errorMessage !== 'The following fields are required: ') {
+      $errors['hasErrors'] = true;
+      $errors['error'] = $errorMessage;
+      $errors['httpHeader'] = array('HTTP/1.1 400 Bad Request');
+
+      return $errors;
+    }
+
+    // Check if email already exists to prevent duplicates
+    $query = <<<SQL
+      SELECT id_user
+      FROM user
+      WHERE email = ?
+    SQL;
+    $existingUser = $this->selectOne($query, ["s", $paramsArray['email']]);
+    if ($existingUser && isset($existingUser->id_user)) {
+      $errors['hasErrors'] = true;
+      $errors['error'] = 'Email already exists';
+      $errors['httpHeader'] = array('HTTP/1.1 409 Email already exists');
+    }
+
+    return $errors;
   }
 }
