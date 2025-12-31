@@ -118,6 +118,16 @@ if ($hasAdditionalSegment) {
     $objController->listAction($args);
     exit();
   }
+  if ($uri[2] === 'user' and $uri[4] === 'message' and $requestMethod === 'POST') {
+    $objController = new MessageController();
+    $objController->addMessageToUser();
+    exit();
+  }
+  if ($uri[2] === 'user' and $uri[4] === 'message' and $requestMethod === 'PUT') {
+    $objController = new MessageController();
+    $objController->modifyMessageForUser();
+    exit();
+  }
   if ($uri[2] === 'user' and $uri[4] === 'note' and $requestMethod === 'GET') {
     $objController = new NoteController();
     $args = array(
@@ -145,6 +155,26 @@ if ($hasAdditionalSegment) {
   if ($uri[2] === 'user' and $uri[4] === 'project' and $requestMethod === 'POST') {
     $objController = new ProjectController();
     $objController->addProjectToUser();
+    exit();
+  }
+  if ($uri[2] === 'user' and $uri[4] === 'project' and $requestMethod === 'DELETE') {
+    $objController = new ProjectController();
+    $objController->removeProjectFromUser();
+    exit();
+  }
+  if ($uri[2] === 'user' and $uri[4] === 'technical-skill' and $requestMethod === 'POST') {
+    $objController = new TechnicalSkillController();
+    $objController->addTechnicalSkillToUser();
+    exit();
+  }
+  if ($uri[2] === 'user' and $uri[4] === 'technical-skill' and $requestMethod === 'PUT') {
+    $objController = new TechnicalSkillController();
+    $objController->updateTechnicalSkillFromUser();
+    exit();
+  }
+  if ($uri[2] === 'user' and $uri[4] === 'technical-skill' and $requestMethod === 'DELETE') {
+    $objController = new TechnicalSkillController();
+    $objController->removeTechnicalSkillFromUser();
     exit();
   }
   if ($uri[2] === 'note' and $uri[4] === 'comment' and $requestMethod === 'GET') {
@@ -228,6 +258,9 @@ switch ($uri[2]) {
     break;
   case 'role':
     $objController = new RoleController();
+    break;
+  case 'status':
+    $objController = new StatusController();
     break;
   case 'tag':
     $objController = new TagController();
