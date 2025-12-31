@@ -101,9 +101,12 @@ class ProjectModel extends Database implements IModel
                 ',"username":"', COALESCE(user.username, ''), '"}'
               )
             ),
-          ']') as users_json
+          ']') as users_json,
+          (SELECT group_concat(id_item) FROM note WHERE note.id_project = project.id_project) as id_notes
         FROM project
         LEFT JOIN user AS creator ON creator.id_user = project.id_user
+        LEFT JOIN projects ON projects.id_project = project.id_project
+        LEFT JOIN user ON user.id_user = projects.id_user
         WHERE project.id_project = ?
     SQL;
     return $this->selectOne($query, ["i", $id]);
