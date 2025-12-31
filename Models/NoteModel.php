@@ -113,7 +113,7 @@ class NoteModel extends Database implements IModel
           user.username,
           user_items.access_type
         FROM (
-          SELECT id_item, 'owned' AS access_type
+          SELECT id_item, 'owned'  AS access_type
           FROM note
           WHERE id_user = ?
           UNION
