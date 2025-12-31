@@ -44,6 +44,7 @@ class MessageModel extends Database implements IModel
       $query = <<<SQL
         SELECT
             m.id_message,
+            user.id_user,
             m.created_at,
             text,
             read_at
@@ -126,30 +127,18 @@ class MessageModel extends Database implements IModel
 
   public function addToUser($paramsArray)
   {
-    $message_id = $paramsArray['message_id'];
+    $text = $paramsArray['text'];
     $user_id = $paramsArray['user_id'];
-    return $this->insert(
+    $now = date('Y-m-d H:i:s');
+    $id = $this->insert(
+      "INSERT INTO message (text, created_at) VALUES (?, ?)",
+      ["ss", $text, $now]
+    );
+    $this->insert(
       "INSERT INTO messages (id_message, id_user) VALUES (?, ?)",
-      ["ii", $message_id, $user_id]
+      ["ii", $id, $user_id]
     );
-  }
-
-  public function modifyForUser($paramsArray)
-  {
-    $message_id = $paramsArray['message_id'];
-    $user_id = $paramsArray['user_id'];
-
-    $query = $this->baseQuery . <<<SQL
-    WHERE m.id_message = ? AND id_user = ?
-    SQL;
-    $message = $this->selectOne($query, ["i", $message_id, $user_id]);
-
-    $read_at = $paramsArray['read_at'] ?? $message->read_at;
-
-    return $this->insert(
-      "UPDATE messages SET read_at = ? WHERE id_message = ? AND id_user = ?",
-      ["sii", $read_at, $message_id, $user_id]
-    );
+    return true;
   }
 
   public function modify($paramsArray)
@@ -165,5 +154,17 @@ class MessageModel extends Database implements IModel
       WHERE m.id_message = ?
     SQL;
     return $this->selectOne($query, ["i", $id]);
+  }
+
+  public function modifyForUser($paramsArray)
+  {
+    $message_id = $paramsArray['message_id'];
+    $user_id = $paramsArray['user_id'];
+    $read_at = $paramsArray['read_at'];
+
+    return $this->update(
+      "UPDATE messages SET read_at = ? WHERE id_message = ? AND id_user = ?",
+      ["sii", $read_at, $message_id, $user_id]
+    );
   }
 }
