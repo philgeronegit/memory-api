@@ -43,4 +43,14 @@ class ProjectController extends BaseController
       return $this->sendOutput($this->model->addToProject(array('user_ids' => $user_ids, 'project_id' => $project_id)));
     });
   }
+
+  public function removeProjectFromUser(): void
+  {
+    $this->doAction($fn = function () {
+      $user_id = $this->getUriSegments()[3];
+      $user_ids = array($user_id);
+      $project_id = $this->getUriSegments()[5];
+      return $this->sendOutput($this->model->deleteFromProject(array('user_ids' => $user_ids, 'project_id' => $project_id)));
+    });
+  }
 }

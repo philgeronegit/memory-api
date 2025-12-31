@@ -20,13 +20,14 @@ class ProjectModel extends Database implements IModel
         archived_at,
         group_concat(projects.id_user) as id_users,
         group_concat(user.username) as users,
-        CONCAT(
-            '[',
-            GROUP_CONCAT(
-                JSON_OBJECT('id_user', projects.id_user, 'username', user.username)
-            ),
-            ']'
-        ) AS users_json,
+        CONCAT('[',
+          group_concat(
+            CONCAT(
+              '{"id_user":', COALESCE(projects.id_user, 'null'),
+              ',"username":"', COALESCE(user.username, ''), '"}'
+            )
+          ),
+        ']') as users_json,
         (SELECT group_concat(id_item) FROM note WHERE note.id_project = project.id_project) as id_notes
       FROM project
       LEFT JOIN user AS creator ON creator.id_user = project.id_user
@@ -50,7 +51,17 @@ class ProjectModel extends Database implements IModel
           project.id_user AS created_by_id,
           creator.username AS created_by_name,
           modified_at as updated_at,
-          archived_at
+          archived_at,
+          group_concat(projects.id_user) as id_users,
+          group_concat(user.username) as users,
+          CONCAT('[',
+            group_concat(
+              CONCAT(
+                '{"id_user":', COALESCE(projects.id_user, 'null'),
+                ',"username":"', COALESCE(user.username, ''), '"}'
+              )
+            ),
+          ']') as users_json
         FROM project
         LEFT JOIN user AS creator ON creator.id_user = project.id_user
         LEFT JOIN projects ON projects.id_project = project.id_project
@@ -72,7 +83,7 @@ class ProjectModel extends Database implements IModel
   public function getOne($id, $args = null)
   {
     $query = <<<SQL
-            SELECT
+        SELECT
           project.id_project,
           name,
           description,
@@ -80,7 +91,17 @@ class ProjectModel extends Database implements IModel
           project.id_user AS created_by_id,
           creator.username AS created_by_name,
           modified_at as updated_at,
-          archived_at
+          archived_at,
+          group_concat(projects.id_user) as id_users,
+          group_concat(user.username) as users,
+          CONCAT('[',
+            group_concat(
+              CONCAT(
+                '{"id_user":', COALESCE(projects.id_user, 'null'),
+                ',"username":"', COALESCE(user.username, ''), '"}'
+              )
+            ),
+          ']') as users_json
         FROM project
         LEFT JOIN user AS creator ON creator.id_user = project.id_user
         WHERE project.id_project = ?
@@ -145,13 +166,30 @@ class ProjectModel extends Database implements IModel
       throw new InvalidArgumentException('user_ids must be an array.');
     }
 
-    // delete all users for the project
-    $this->delete("DELETE FROM projects WHERE id_project = ?", ["i", $project_id]);
-
     // insert new users
     foreach ($user_ids as $user_id) {
       $this->insert(
         "INSERT INTO projects (id_user, id_project) VALUES (?, ?)",
+        ["ii", $user_id, $project_id]
+      );
+    }
+
+    return true;
+  }
+
+  public function deleteFromProject($paramsArray)
+  {
+    $project_id = $paramsArray['project_id'];
+    $user_ids = $paramsArray['user_ids'];
+
+    if (!is_array($user_ids)) {
+      throw new InvalidArgumentException('user_ids must be an array.');
+    }
+
+    // delete users
+    foreach ($user_ids as $user_id) {
+      $this->delete(
+        "DELETE FROM projects WHERE id_user = ? AND id_project = ?",
         ["ii", $user_id, $project_id]
       );
     }
