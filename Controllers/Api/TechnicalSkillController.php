@@ -29,4 +29,47 @@ class TechnicalSkillController extends BaseController
       );
     });
   }
+
+  public function addTechnicalSkillToUser(): void
+  {
+    $this->doAction($fn = function () {
+      $user_id = $this->getUriSegments()[3];
+      $id_technical_skill = $this->getUriSegments()[5];
+      $year_experience = $this->getRequestBody('year_experience');
+
+      return $this->sendOutput($this->model->addToTechnicalSkill(array(
+        'user_id' => $user_id,
+        'technical_skill_id' => $id_technical_skill,
+        'year_experience' => $year_experience
+      )));
+    });
+  }
+
+  public function updateTechnicalSkillFromUser(): void
+  {
+    $this->doAction($fn = function () {
+      $user_id = $this->getUriSegments()[3];
+      $id_technical_skill = $this->getUriSegments()[5];
+      $year_experience = $this->getRequestBody('year_experience');
+
+      return $this->sendOutput($this->model->updateTechnicalSkill(array(
+        'user_id' => $user_id,
+        'technical_skill_id' => $id_technical_skill,
+        'year_experience' => $year_experience
+      )));
+    });
+  }
+
+  public function removeTechnicalSkillFromUser(): void
+  {
+    $this->doAction($fn = function () {
+      $user_id = $this->getUriSegments()[3];
+      $id_technical_skill = $this->getUriSegments()[5];
+
+      return $this->sendOutput($this->model->removeFromTechnicalSkill(array(
+        'user_id' => $user_id,
+        'technical_skill_id' => $id_technical_skill
+      )));
+    });
+  }
 }
