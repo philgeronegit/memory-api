@@ -34,7 +34,8 @@ class UserController extends BaseController
           $this->sendOutput(['error' => $validationErrors['error']], $validationErrors['httpHeader']);
           return;
       }
-      return $this->model->add($paramsArray);
+
+      return $this->sendOutput($this->model->add($paramsArray));
     });
   }
 
@@ -52,14 +53,22 @@ class UserController extends BaseController
       $avatar_url = $this->getRequestBody('avatar_url');
       $id_role = $this->getRequestBody('id_role');
       $is_admin = $this->getRequestBody('is_admin');
-      return $this->model->modify(array(
+
+      $paramsArray = array(
         'id' => $id,
         'username' => $username,
         'email' =>  $email,
         'avatar_url' => $avatar_url,
         'id_role' => $id_role,
         'is_admin' => $is_admin
-      ));
+      );
+      $validationErrors = $this->model->validateUpdate($paramsArray);
+      if ($validationErrors['hasErrors']) {
+          $this->sendOutput(['error' => $validationErrors['error']], $validationErrors['httpHeader']);
+          return;
+      }
+
+      return $this->sendOutput($this->model->modify($paramsArray));
     });
   }
 }
