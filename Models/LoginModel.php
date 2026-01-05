@@ -34,6 +34,7 @@ class LoginModel extends Database
 
   public function add($paramsArray)
   {
+    $logger = SecurityLogger::getInstance();
     $username = $paramsArray['username'];
     $password = $paramsArray['password'];
 
@@ -46,6 +47,9 @@ class LoginModel extends Database
       $isPasswordValid = password_verify($password, $user->password);
     }
     if ($isPasswordValid) {
+      // Log successful login
+      $logger->logLoginSuccess($username, $user->id_user);
+
       // Remove password from result before returning
       unset($user->password);
       // Generate JWT token
@@ -61,6 +65,9 @@ class LoginModel extends Database
       $user->expires_in = (int)JWT_EXPIRATION_TIME;
       return $user;
     }
+
+    // Log failed login attempt
+    $logger->logLoginFailure($username, 'Invalid credentials');
     return null;
   }
 
@@ -118,9 +125,11 @@ class LoginModel extends Database
 
   public function refreshAccessToken($refreshToken)
   {
+    $logger = SecurityLogger::getInstance();
     try {
       $decoded = JWT::decode($refreshToken, new Key(JWT_SECRET_KEY, JWT_ALGORITHM));
       if ($decoded->data->type !== 'refresh') {
+        $logger->logTokenValidationFailure('Not a refresh token', $refreshToken);
         return null; // Not a refresh token
       }
       $userId = $decoded->data->id_user;
@@ -128,6 +137,9 @@ class LoginModel extends Database
       $query = $this->baseQuery . " WHERE u.id_user = ? AND u.refresh_token = ?";
       $user = $this->selectOne($query, ["is", $userId, $refreshToken]);
       if ($user->id_user) {
+        // Log successful token refresh
+        $logger->logTokenRefresh($user->id_user, $user->username);
+
         // Generate new access token
         $newAccessToken = $this->generateJwtToken($user);
         // Optionally generate new refresh token
@@ -144,6 +156,7 @@ class LoginModel extends Database
         return $user;
       }
     } catch (Exception $e) {
+      $logger->logTokenValidationFailure($e->getMessage(), $refreshToken);
       error_log("Error refreshing token: " . $e->getMessage());
     }
     return null;
@@ -151,11 +164,14 @@ class LoginModel extends Database
 
   public function modify($paramsArray)
   {
+    $logger = SecurityLogger::getInstance();
     $id = $paramsArray['id'];
 
     $query = $this->baseQuery . <<<SQL
     WHERE id_user = ?
     SQL;
+
+    $user = $this->selectOne($query, ["i", $id]);
 
     $password = $paramsArray['password'];
     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
@@ -164,6 +180,9 @@ class LoginModel extends Database
       "UPDATE user SET password = ? WHERE id_user = ?",
       ["si", $hashed_password, $id]
     );
+
+    // Log password change
+    $logger->logPasswordChange($id, $user->username, false);
 
     return $this->selectOne($query, ["i", $id]);
   }

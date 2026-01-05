@@ -27,6 +27,7 @@ use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
 function verifyJwtToken() {
+    $logger = SecurityLogger::getInstance();
     $headers = getallheaders();
     $headers = array_change_key_case($headers, CASE_LOWER);
     $authHeader = $headers['authorization'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? null;
@@ -36,6 +37,7 @@ function verifyJwtToken() {
     }
 
     if (!$authHeader) {
+        $logger->logTokenValidationFailure('Authorization header missing');
         http_response_code(401);
         header('Content-Type: application/json');
         echo json_encode(['error' => 'Authorization header missing']);
@@ -43,6 +45,7 @@ function verifyJwtToken() {
     }
 
     if (!preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
+        $logger->logTokenValidationFailure('Invalid authorization header format');
         http_response_code(401);
         header('Content-Type: application/json');
         echo json_encode(['error' => 'Invalid authorization header format']);
@@ -59,6 +62,7 @@ function verifyJwtToken() {
         // Token is valid, return decoded payload
         return $decoded;
     } catch (Exception $e) {
+        $logger->logTokenValidationFailure($e->getMessage(), $token);
         http_response_code(401);
         header('Content-Type: application/json');
         echo json_encode(['error' => 'Invalid or expired token: ' . $e->getMessage()]);

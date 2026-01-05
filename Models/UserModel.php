@@ -81,6 +81,17 @@ class UserModel extends Database implements IModel, IValidator
 
   public function remove($id)
   {
+    $logger = SecurityLogger::getInstance();
+
+    // Get user info before deletion for logging
+    $query = $this->baseQuery . " WHERE id_user = ?";
+    $user = $this->selectOne($query, ["i", $id]);
+    $username = $user->username ?? 'unknown';
+
+    // Get current user for audit trail
+    $currentUser = $GLOBALS['jwt_user_data'] ?? null;
+    $deletedBy = $currentUser->id_user ?? 0;
+
     // Begin transaction to ensure data consistency
     $this->connection->begin_transaction();
 
@@ -110,6 +121,10 @@ class UserModel extends Database implements IModel, IValidator
       $this->delete("DELETE FROM user WHERE id_user = ?", ["i", $id]);
 
       $this->connection->commit();
+
+      // Log successful deletion
+      $logger->logUserDeletion($id, $username, $deletedBy);
+
       return true;
     } catch (Exception $e) {
       $this->connection->rollback();
@@ -119,6 +134,10 @@ class UserModel extends Database implements IModel, IValidator
 
   public function add($paramsArray)
   {
+    $logger = SecurityLogger::getInstance();
+    $currentUser = $GLOBALS['jwt_user_data'] ?? null;
+    $createdBy = $currentUser->id_user ?? null;
+
     $username = $paramsArray['username'];
     $email = $paramsArray['email'];
     $avatar_url = $paramsArray['avatar_url'];
@@ -153,11 +172,19 @@ class UserModel extends Database implements IModel, IValidator
     $query = $this->baseQuery . <<<SQL
     WHERE id_user = ?
     SQL;
+
+    // Log user creation
+    $logger->logUserCreation($id, $username, $createdBy);
+
     return $this->selectOne($query, ["i", $id]);
   }
 
   public function modify($paramsArray)
   {
+    $logger = SecurityLogger::getInstance();
+    $currentUser = $GLOBALS['jwt_user_data'] ?? null;
+    $changedBy = $currentUser->id_user ?? 0;
+
     $id = $paramsArray['id'];
 
     $query = $this->baseQuery . <<<SQL
@@ -175,6 +202,17 @@ class UserModel extends Database implements IModel, IValidator
     $avatar_url = $paramsArray['avatar_url'] ?? $user->avatar_url;
     $id_role = $paramsArray['id_role'] ?? $user->id_role;
     $is_admin = $paramsArray['is_admin'] ?? $user->is_admin;
+
+    // Check if role is being changed
+    if (isset($paramsArray['id_role']) && $paramsArray['id_role'] != $user->id_role) {
+      $logger->logRoleChange(
+        $id,
+        $user->username,
+        $user->role_value ?? 'unknown',
+        $paramsArray['id_role'],
+        $changedBy
+      );
+    }
 
     $this->update(
       "UPDATE user SET username = ?, email = ?, avatar_url = ?, id_role = ?, is_admin = ? " .
