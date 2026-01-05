@@ -40,6 +40,7 @@ CREATE TABLE item(
 CREATE TABLE status(
    id_status INT AUTO_INCREMENT,
    name VARCHAR(50) ,
+   value VARCHAR(50) ,
    PRIMARY KEY(id_status)
 );
 
