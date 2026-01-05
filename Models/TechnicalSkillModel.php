@@ -55,4 +55,45 @@ class TechnicalSkillModel extends Database implements IModel
       ["si", $name, $id]
     );
   }
+
+  public function addToTechnicalSkill($paramsArray)
+  {
+    $user_id = $paramsArray['user_id'];
+    $technical_skill_id = $paramsArray['technical_skill_id'];
+    $year_experience = $paramsArray['year_experience'];
+
+    $this->insert(
+      "INSERT INTO skills (id_user, id_technical_skill, year_experience) VALUES (?, ?, ?)",
+      ["iii", $user_id, $technical_skill_id, $year_experience]
+    );
+
+    return true;
+  }
+
+  public function updateTechnicalSkill($paramsArray)
+  {
+    $user_id = $paramsArray['user_id'];
+    $technical_skill_id = $paramsArray['technical_skill_id'];
+    $year_experience = $paramsArray['year_experience'];
+
+    $this->update(
+      "UPDATE skills SET year_experience = ? WHERE id_user = ? AND id_technical_skill = ?",
+      ["iii", $year_experience, $user_id, $technical_skill_id]
+    );
+
+    return true;
+  }
+
+  public function removeFromTechnicalSkill($paramsArray)
+  {
+    $user_id = $paramsArray['user_id'];
+    $technical_skill_id = $paramsArray['technical_skill_id'];
+
+    $this->delete(
+      "DELETE FROM skills WHERE id_user = ? AND id_technical_skill = ?",
+      ["ii", $user_id, $technical_skill_id]
+    );
+
+    return true;
+  }
 }

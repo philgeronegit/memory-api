@@ -12,12 +12,12 @@ class LoginController extends BaseController
 
       $username = $this->getRequestBody('username');
       $password = $this->getRequestBody('password');
-      $return = $this->model->add(array('username' => $username, 'password' => $password));
-      if (isset($return->id_user)) {
-        return $return;
+      $user = $this->model->add(array('username' => $username, 'password' => $password));
+      if (isset($user->id_user)) {
+        return $this->sendOutput($user);
       }
       $this->sendOutput(
-        json_encode(array("error" => "Invalid credentials")),
+        array("error" => "Invalid credentials"),
         array('Content-Type: application/json', 'HTTP/1.1 401 Unauthorized')
       );
     });
@@ -28,10 +28,10 @@ class LoginController extends BaseController
     $this->doAction($fn = function () {
       $id = $this->getUriSegments()[3];
       $password = $this->getRequestBody('password');
-      return $this->model->modify(array(
+      return $this->sendOutput($this->model->modify(array(
         'id' => $id,
         'password' => $password,
-      ));
+      )));
     });
   }
 }

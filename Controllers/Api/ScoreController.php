@@ -12,13 +12,13 @@ class ScoreController extends BaseController
       $id = $this->getUriSegments()[3];
       $user_id = $this->getUriSegments()[5];
       $score = $this->getRequestBody('score');
-      return $this->model->modify(
+      return $this->sendOutput($this->model->modify(
         array(
           'id' => $id,
           'user_id' => $user_id,
           'score' => $score
         )
-      );
+      ));
     });
   }
 
@@ -28,7 +28,7 @@ class ScoreController extends BaseController
       $note_id = $this->getUriSegments()[3];
       $user_id = $this->getRequestBody('user_id');
       $score = $this->getRequestBody('score');
-      return $this->model->modify(array('id' => $note_id, 'user_id' => $user_id, 'score' => $score));
+      return $this->sendOutput($this->model->modify(array('id' => $note_id, 'user_id' => $user_id, 'score' => $score)));
     });
   }
 
@@ -38,7 +38,7 @@ class ScoreController extends BaseController
       $note_id = $this->getUriSegments()[3];
       $user_id = $this->getUriSegments()[5];
       $score = $this->getRequestBody('score');
-      return $this->model->add(array('note_id' => $note_id, 'user_id' => $user_id, 'score' => $score));
+      return $this->sendOutput($this->model->add(array('note_id' => $note_id, 'user_id' => $user_id, 'score' => $score)));
     });
   }
 }

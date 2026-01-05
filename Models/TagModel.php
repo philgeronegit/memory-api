@@ -79,18 +79,30 @@ class TagModel extends Database implements IModel
       throw new InvalidArgumentException('tag_ids must be an array.');
     }
 
-    // delete all tags for the note
-    $this->delete("DELETE FROM tags WHERE id_item = ?", ["i", $note_id]);
+    // Begin transaction to ensure data consistency
+    $this->connection->begin_transaction();
 
-    // insert new tags
-    foreach ($tag_ids as $tag_id) {
-      $this->insert(
-        "INSERT INTO tags (id_tag, id_item) VALUES (?, ?)",
-        ["ii", $tag_id, $note_id]
-      );
+    try {
+      // delete all tags for the note
+      $this->delete("DELETE FROM tags WHERE id_item = ?", ["i", $note_id]);
+
+      // insert new tags
+      foreach ($tag_ids as $tag_id) {
+        $this->insert(
+          "INSERT INTO tags (id_tag, id_item) VALUES (?, ?)",
+          ["ii", $tag_id, $note_id]
+        );
+      }
+
+      // Commit the transaction
+      $this->connection->commit();
+      return true;
+
+    } catch (Exception $e) {
+      // Rollback the transaction on error
+      $this->connection->rollback();
+      throw $e;
     }
-
-    return true;
   }
 
   public function modify($paramsArray)

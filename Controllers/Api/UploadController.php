@@ -15,7 +15,7 @@ class UploadController extends BaseController
     $userId = $uri[3];
     if (empty($userId)) {
       $this->sendOutput(
-        json_encode(array("status" => "error", "message" => "User id is required.")),
+        array("status" => "error", "message" => "User id is required."),
         array('Content-Type: application/json', 'HTTP/1.1 400 Bad Request')
       );
       return;
@@ -36,24 +36,24 @@ class UploadController extends BaseController
       if (in_array($fileType, $allowTypes)) {
           if (move_uploaded_file($file['tmp_name'], $targetFilePath)) {
             $this->sendOutput(
-              json_encode(array("status" => "success", "message" => "File uploaded successfully.")),
+              array("status" => "success", "message" => "File uploaded successfully."),
               array('Content-Type: application/json', 'HTTP/1.1 200 OK')
             );
           } else {
               $this->sendOutput(
-                json_encode(array("status" => "error", "message" => "File upload failed.")),
+                array("status" => "error", "message" => "File upload failed."),
                 array('Content-Type: application/json', 'HTTP/1.1 500 Internal Server Error')
               );
           }
       } else {
           $this->sendOutput(
-            json_encode(array("status" => "error", "message" => "Sorry, only JPG, JPEG, PNG, GIF, & PDF files are allowed.")),
+            array("status" => "error", "message" => "Sorry, only JPG, JPEG, PNG, GIF, & PDF files are allowed."),
             array('Content-Type: application/json', 'HTTP/1.1 400 Bad Request')
           );
       }
     } else {
         $this->sendOutput(
-          json_encode(array("status" => "error", "message" => "No file was uploaded.")),
+          array("status" => "error", "message" => "No file was uploaded."),
           array('Content-Type: application/json', 'HTTP/1.1 400 Bad Request')
         );
     }
@@ -66,7 +66,7 @@ class UploadController extends BaseController
 
     if (!file_exists($targetDir)) {
       $this->sendOutput(
-        json_encode(array('error' => "Directory does not exist.")),
+        array('error' => "Directory does not exist."),
         array('Content-Type: application/json', 'HTTP/1.1 404 Not Found')
       );
       return;
@@ -83,7 +83,7 @@ class UploadController extends BaseController
     }
 
     $this->sendOutput(
-      json_encode($fileList),
+      $fileList,
       array('Content-Type: application/json', 'HTTP/1.1 200 OK')
     );
   }

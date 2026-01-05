@@ -12,25 +12,28 @@ class TaskModel extends Database implements IModel
       SELECT
           task.id_item,
           title,
-          description,
-          created_at,
-          updated_at,
-          archived_at,
+          item.description,
+          item.created_at,
+          item.updated_at,
+          item.archived_at,
           status.id_status,
-          name AS status,
+          status.name AS status,
           due_at,
           done_at,
           priority,
-          id_project,
-          id_executive,
-          id_developer,
+          task.id_project,
+          project.name AS project_name,
+          task.id_executive,
+          executive.username AS executive_name,
+          task.id_developer,
+          developer.username AS developer_name,
           task.task_order
-      FROM
-          task
-              JOIN
-          item ON item.id_item = task.id_item
-              JOIN
-          status ON status.id_status = task.id_status
+      FROM task
+      JOIN item ON item.id_item = task.id_item
+      JOIN status ON status.id_status = task.id_status
+      JOIN project ON project.id_project = task.id_project
+      JOIN user AS developer ON developer.id_user = task.id_developer
+      JOIN user AS executive ON executive.id_user = task.id_executive
 
       SQL;
   }
@@ -44,8 +47,8 @@ class TaskModel extends Database implements IModel
         WHERE id_developer = ?
         ORDER BY
           CASE
-            WHEN updated_at IS NOT NULL THEN updated_at
-            ELSE created_at
+            WHEN item.updated_at IS NOT NULL THEN item.updated_at
+            ELSE item.created_at
           END ASC
         LIMIT ?
       SQL;
@@ -56,8 +59,8 @@ class TaskModel extends Database implements IModel
     $query = $this->baseQuery . <<<SQL
     ORDER BY
       CASE
-        WHEN updated_at IS NOT NULL THEN updated_at
-        ELSE created_at
+        WHEN item.updated_at IS NOT NULL THEN item.updated_at
+        ELSE item.created_at
       END ASC
     LIMIT ?
     SQL;
@@ -86,9 +89,10 @@ class TaskModel extends Database implements IModel
     $id_executive = $paramsArray['id_executive'];
     $id_developer = $paramsArray['id_developer'];
     $priority = $paramsArray['priority'];
+    $created_at = date('Y-m-d H:i:s');
     $item_id = $this->insert(
-      "INSERT INTO item (title, description) VALUES (?, ?)",
-      ["ss", $title, $description]
+      "INSERT INTO item (title, description, created_at) VALUES (?, ?, ?)",
+      ["sss", $title, $description, $created_at]
     );
 
     $this->insert(

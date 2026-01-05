@@ -13,7 +13,7 @@ class ProjectController extends BaseController
       $name = $this->getRequestBody('name');
       $description = $this->getRequestBody('description');
       $id_user = $this->getRequestBody('id_user');
-      return $this->model->add(array('name' => $name, 'description' => $description, 'id_user' => $id_user));
+      return $this->sendOutput($this->model->add(array('name' => $name, 'description' => $description, 'id_user' => $id_user)));
     });
   }
 
@@ -24,13 +24,13 @@ class ProjectController extends BaseController
       $name = $this->getRequestBody('name');
       $description = $this->getRequestBody('description');
 
-      return $this->model->modify(
+      return $this->sendOutput($this->model->modify(
         array(
           'id' => $id,
           'name' => $name,
           'description' => $description
         )
-      );
+      ));
     });
   }
 
@@ -40,7 +40,17 @@ class ProjectController extends BaseController
       $user_id = $this->getUriSegments()[3];
       $user_ids = array($user_id);
       $project_id = $this->getUriSegments()[5];
-      return $this->model->addToProject(array('user_ids' => $user_ids, 'project_id' => $project_id));
+      return $this->sendOutput($this->model->addToProject(array('user_ids' => $user_ids, 'project_id' => $project_id)));
+    });
+  }
+
+  public function removeProjectFromUser(): void
+  {
+    $this->doAction($fn = function () {
+      $user_id = $this->getUriSegments()[3];
+      $user_ids = array($user_id);
+      $project_id = $this->getUriSegments()[5];
+      return $this->sendOutput($this->model->deleteFromProject(array('user_ids' => $user_ids, 'project_id' => $project_id)));
     });
   }
 }

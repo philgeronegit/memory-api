@@ -28,7 +28,12 @@ use Firebase\JWT\Key;
 
 function verifyJwtToken() {
     $headers = getallheaders();
-    $authHeader = $headers['Authorization'] ?? null;
+    $headers = array_change_key_case($headers, CASE_LOWER);
+    $authHeader = $headers['authorization'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? null;
+
+    if (!$authHeader && isset($_COOKIE['auth-token'])) {
+        $authHeader = 'Bearer ' . $_COOKIE['auth-token'];
+    }
 
     if (!$authHeader) {
         http_response_code(401);
@@ -81,6 +86,14 @@ if ($uri[2] !== 'login') {
 
 $hasAdditionalSegment = isset($uri[4]);
 if ($hasAdditionalSegment) {
+  if ($uri[2] === 'project' and $uri[4] === 'user' and $requestMethod === 'GET') {
+    $objController = new UserController();
+    $args = array(
+      'id' => $uri[3]
+    );
+    $objController->listAction($args);
+    exit();
+  }
   if ($uri[2] === 'user' and $uri[4] === 'project' and $requestMethod === 'GET') {
     $objController = new ProjectController();
     $args = array(
@@ -103,6 +116,16 @@ if ($hasAdditionalSegment) {
       'id' => $uri[3]
     );
     $objController->listAction($args);
+    exit();
+  }
+  if ($uri[2] === 'user' and $uri[4] === 'message' and $requestMethod === 'POST') {
+    $objController = new MessageController();
+    $objController->addMessageToUser();
+    exit();
+  }
+  if ($uri[2] === 'user' and $uri[4] === 'message' and $requestMethod === 'PUT') {
+    $objController = new MessageController();
+    $objController->modifyMessageForUser();
     exit();
   }
   if ($uri[2] === 'user' and $uri[4] === 'note' and $requestMethod === 'GET') {
@@ -132,6 +155,26 @@ if ($hasAdditionalSegment) {
   if ($uri[2] === 'user' and $uri[4] === 'project' and $requestMethod === 'POST') {
     $objController = new ProjectController();
     $objController->addProjectToUser();
+    exit();
+  }
+  if ($uri[2] === 'user' and $uri[4] === 'project' and $requestMethod === 'DELETE') {
+    $objController = new ProjectController();
+    $objController->removeProjectFromUser();
+    exit();
+  }
+  if ($uri[2] === 'user' and $uri[4] === 'technical-skill' and $requestMethod === 'POST') {
+    $objController = new TechnicalSkillController();
+    $objController->addTechnicalSkillToUser();
+    exit();
+  }
+  if ($uri[2] === 'user' and $uri[4] === 'technical-skill' and $requestMethod === 'PUT') {
+    $objController = new TechnicalSkillController();
+    $objController->updateTechnicalSkillFromUser();
+    exit();
+  }
+  if ($uri[2] === 'user' and $uri[4] === 'technical-skill' and $requestMethod === 'DELETE') {
+    $objController = new TechnicalSkillController();
+    $objController->removeTechnicalSkillFromUser();
     exit();
   }
   if ($uri[2] === 'note' and $uri[4] === 'comment' and $requestMethod === 'GET') {
@@ -215,6 +258,9 @@ switch ($uri[2]) {
     break;
   case 'role':
     $objController = new RoleController();
+    break;
+  case 'status':
+    $objController = new StatusController();
     break;
   case 'tag':
     $objController = new TagController();

@@ -92,12 +92,12 @@ class NoteController extends BaseController
     $this->doAction($fn = function () {
       $id_item = $this->getRequestBody('id_item');
       $id_user = $this->getRequestBody('id_user');
-      return $this->model->shareNoteWithUser(
+      return $this->sendOutput($this->model->shareNoteWithUser(
         array(
           'id_item' => $id_item,
           'id_user' => $id_user
         )
-      );
+      ));
     });
   }
 

@@ -25,7 +25,7 @@ class CommentController extends BaseController
 
       // Verify user has access to the note before allowing comment
       if (!$this->noteModel->userHasNoteAccess($id_item, $id_user)) {
-        $this->sendOutput('Unauthorized to update this user', array('HTTP/1.1 403 Forbidden'));
+        $this->sendOutput('Unauthorized to add this comment', array('HTTP/1.1 403 Forbidden'));
         return;
       }
 

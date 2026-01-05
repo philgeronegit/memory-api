@@ -130,7 +130,8 @@ class BaseController
         header($httpHeader);
       }
     }
-    echo $data;
+    header('Content-Type: application/json');
+    echo json_encode($data);
     exit;
   }
 
@@ -207,7 +208,7 @@ class BaseController
         $args['search_type'] = $searchType;
       }
 
-      return $this->model->getAll($args);
+      return $this->sendOutput($this->model->getAll($args));
     }, $args);
   }
 
@@ -215,7 +216,13 @@ class BaseController
   {
     $this->doAction($fn = function () {
       $id = $this->getUriSegments()[3];
-      return $this->model->remove($id);
+      try {
+        $this->sendOutput($this->model->remove($id));
+      } catch (Exception $e) {
+        $errorMessage = $e->getMessage();
+        $this->sendOutput(['error' => $errorMessage], array('HTTP/1.1 400 Bad Request'));
+        return;
+      }
     });
   }
 
@@ -224,7 +231,7 @@ class BaseController
     $this->doAction($fn = function () {
       $id = $this->getUriSegments()[3];
       $args = $this->getQueryStringParams();
-      return $this->model->getOne($id, $args);
+      return $this->sendOutput($this->model->getOne($id, $args));
     });
   }
 }
