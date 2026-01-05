@@ -3,6 +3,8 @@ define("PROJECT_ROOT_PATH", __DIR__ . "/../");
 
 // include main configuration file
 require_once PROJECT_ROOT_PATH . "/inc/config.php";
+// include security logger
+require_once PROJECT_ROOT_PATH . "/inc/SecurityLogger.php";
 // include the base controller file
 require_once PROJECT_ROOT_PATH . "/Controllers/Api/BaseController.php";
 // Require all files in a loop from /Models except Database.php
