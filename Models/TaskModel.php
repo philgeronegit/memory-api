@@ -159,7 +159,7 @@ class TaskModel extends Database implements IModel
         // If status is provided, update it as well
         if (isset($task['status'])) {
           // First, get the status ID from status name
-          $statusQuery = "SELECT id_status FROM status WHERE name = ?";
+          $statusQuery = "SELECT id_status FROM status WHERE value = ?";
           $statusResult = $this->selectOne($statusQuery, ["s", $task['status']]);
 
           if ($statusResult->id_status) {
