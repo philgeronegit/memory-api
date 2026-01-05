@@ -37,6 +37,13 @@ class BaseController
     $currentUser = $this->getAuthenticatedUser();
 
     if (!in_array($currentUser->role, ['projectManager', 'admin'])) {
+        $logger = SecurityLogger::getInstance();
+        $logger->logAuthorizationFailure(
+            'user_modification',
+            'modify',
+            $currentUser->id_user ?? null,
+            $currentUser->role ?? 'unknown'
+        );
         return false;
     }
     return true;
@@ -52,7 +59,19 @@ class BaseController
     $user = $this->getAuthenticatedUser();
 
     // Check if the user's role matches the required role
-    return $user->role === $requiredRole;
+    $hasAccess = $user->role === $requiredRole;
+
+    if (!$hasAccess) {
+        $logger = SecurityLogger::getInstance();
+        $logger->logAuthorizationFailure(
+            'role_check',
+            $requiredRole,
+            $user->id_user ?? null,
+            $user->role ?? 'unknown'
+        );
+    }
+
+    return $hasAccess;
   }
 
   /**
