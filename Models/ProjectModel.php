@@ -67,6 +67,7 @@ class ProjectModel extends Database implements IModel
         LEFT JOIN projects ON projects.id_project = project.id_project
         LEFT JOIN user ON user.id_user = projects.id_user
         WHERE projects.id_user = ?
+        GROUP BY project.id_project
         ORDER BY name ASC LIMIT ?
       SQL;
 
@@ -108,6 +109,7 @@ class ProjectModel extends Database implements IModel
         LEFT JOIN projects ON projects.id_project = project.id_project
         LEFT JOIN user ON user.id_user = projects.id_user
         WHERE project.id_project = ?
+        GROUP BY project.id_project
     SQL;
     return $this->selectOne($query, ["i", $id]);
   }
