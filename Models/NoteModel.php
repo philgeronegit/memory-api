@@ -111,7 +111,9 @@ class NoteModel extends Database implements IModel
           project.name AS project_name,
           note.id_user,
           user.username,
-          user_items.access_type
+          user.email,
+          user_items.access_type,
+          (SELECT group_concat(tag.name) FROM tags JOIN tag ON tag.id_tag = tags.id_tag WHERE tags.id_item = item.id_item) as tags
         FROM (
           SELECT id_item, 'owned'  AS access_type
           FROM note
@@ -177,7 +179,8 @@ class NoteModel extends Database implements IModel
           note.id_user,
           user.username,
           user.email,
-          note_scores.score
+          note_scores.score,
+          (SELECT group_concat(tag.name) FROM tags JOIN tag ON tag.id_tag = tags.id_tag WHERE tags.id_item = item.id_item) as tags
         FROM item
         JOIN note ON note.id_item = item.id_item
         JOIN user ON user.id_user = note.id_user
