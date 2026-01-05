@@ -82,7 +82,7 @@ if (!$hasRoute) {
 $requestMethod = $_SERVER["REQUEST_METHOD"];
 
 // JWT verification for all routes except login
-if ($uri[2] !== 'login') {
+if ($uri[2] !== 'login' && $uri[2] !== 'view') {
     $decodedToken = verifyJwtToken();
     // Store decoded token data in a global variable for controllers to access if needed
     $GLOBALS['jwt_user_data'] = $decodedToken->data ?? null;
@@ -112,6 +112,24 @@ if ($hasAdditionalSegment) {
       'id' => $uri[3]
     );
     $objController->listAction($args);
+    exit();
+  }
+  if ($uri[2] === 'upload' and isset($uri[3]) and isset($uri[4]) and $requestMethod === 'GET') {
+    $objController = new UploadController();
+    $args = array(
+      'id' => $uri[3],
+      'filename' => $uri[4]
+    );
+    $objController->downloadAction($args);
+    exit();
+  }
+  if ($uri[2] === 'view' and isset($uri[3]) and isset($uri[4]) and $requestMethod === 'GET') {
+    $objController = new UploadController();
+    $args = array(
+      'id' => $uri[3],
+      'filename' => $uri[4]
+    );
+    $objController->viewAction($args);
     exit();
   }
   if ($uri[2] === 'user' and $uri[4] === 'message' and $requestMethod === 'GET') {

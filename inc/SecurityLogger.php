@@ -121,6 +121,11 @@ class SecurityLogger
         file_put_contents(self::LOG_FILE, $logLine, FILE_APPEND | LOCK_EX);
     }
 
+    public function logInfo(string $message, array $data = []): void
+    {
+        $this->writeLog('INFO', $message, $data);
+    }
+
     /**
      * Log successful login
      */
