@@ -43,8 +43,9 @@ class ProjectModel extends Database implements IModel
     if (array_key_exists('id', $args)) {
       $id = $args['id'];
       $query = <<<SQL
-        SELECT
+        (SELECT
           project.id_project,
+          'project_member' AS access_type,
           name,
           description,
           project.created_at,
@@ -67,11 +68,34 @@ class ProjectModel extends Database implements IModel
         LEFT JOIN projects ON projects.id_project = project.id_project
         LEFT JOIN user ON user.id_user = projects.id_user
         WHERE projects.id_user = ?
-        GROUP BY project.id_project
+        GROUP BY project.id_project)
+        UNION
+        (SELECT
+          project.id_project,
+          'shared' AS access_type,
+          name,
+          description,
+          project.created_at,
+          project.id_user AS created_by_id,
+          creator.username AS created_by_name,
+          modified_at as updated_at,
+          archived_at,
+          NULL as id_users,
+          NULL as users,
+          NULL as users_json
+        FROM project
+        LEFT JOIN user AS creator ON creator.id_user = project.id_user
+        WHERE project.id_project IN (
+          SELECT DISTINCT note.id_project
+          FROM note
+          JOIN shared ON note.id_item = shared.id_item
+          WHERE shared.id_user = ?
+        )
+        GROUP BY project.id_project)
         ORDER BY name ASC LIMIT ?
       SQL;
 
-      return $this->select($query, ["ii", $id, $limit]);
+      return $this->select($query, ["iii", $id, $id, $limit]);
     }
 
     $query = $this->baseQuery . <<<SQL
