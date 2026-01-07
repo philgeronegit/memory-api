@@ -297,3 +297,49 @@ This project uses vlucas/phpdotenv to manage environment variables. Make sure to
 ### Application Configuration
 
 - APP_ENV - Application environment (e.g., local, production)
+
+## Deployment
+
+The Memory API can be deployed to a production server using the automated FTP deployment script.
+
+### Prerequisites
+
+- PHP FTP extension enabled (usually included by default)
+- FTP access to your production server
+
+### Quick Start
+
+1. **Configure deployment credentials:**
+   ```sh
+   cp .env.deploy.example .env.deploy
+   # Edit .env.deploy with your server details
+   ```
+
+2. **Test deployment (dry-run):**
+   ```sh
+   php deploy-ftp.php --dry-run
+   ```
+
+3. **Deploy to production:**
+   ```sh
+   php deploy-ftp.php
+   ```
+
+### What the deployment script does:
+
+- ✅ Builds production dependencies (`composer install --no-dev`)
+- ✅ Creates timestamped backup of current deployment
+- ✅ Uploads all application files via FTP
+- ✅ Creates required directories (uploads/, logs/)
+- ✅ Automatically cleans up old backups
+
+### For detailed deployment instructions:
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for comprehensive deployment guide including:
+- Installation and configuration of PHP FTP extension
+- Server requirements and setup
+- Post-deployment steps (database import, permissions, CORS configuration)
+- Backup management and rollback procedures
+- Troubleshooting common deployment issues
+
+**Note:** The deployment script replaces the manual WinSCP workflow with automated FTP deployment.
