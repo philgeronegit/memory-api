@@ -1,0 +1,55 @@
+{
+  "description": "Deployment configuration for Memory API SFTP deployment",
+  "include": [
+    "index.php",
+    ".htaccess",
+    "Controllers/",
+    "Models/",
+    "inc/",
+    "static/",
+    "SQL/",
+    "vendor/",
+    "composer.json",
+    "composer.lock",
+    "uploads/.htaccess"
+  ],
+  "exclude": [
+    ".git/",
+    ".github/",
+    ".vscode/",
+    "tests/",
+    "tmp/",
+    "plan/",
+    "doc/",
+    "npm/",
+    ".env",
+    ".env.deploy",
+    ".env.*.example",
+    ".gitignore",
+    "*.bak",
+    "phpunit.xml*",
+    ".phpunit.cache/",
+    "phpstan.neon",
+    "Dockerfile",
+    "test-ci-local.sh",
+    "README.md",
+    "TESTING.md",
+    "DEPLOYMENT.md",
+    "deploy-sftp.php",
+    ".deploy-config.json",
+    "composer.phar",
+    "logs/*",
+    "uploads/*/*"
+  ],
+  "required_directories": [
+    "uploads",
+    "logs"
+  ],
+  "notes": {
+    "uploads": "Only uploads/.htaccess is deployed for security. User files are not transferred.",
+    "logs": "Created empty on server. Application will auto-create log files with proper permissions.",
+    "vendor": "Built locally with 'composer install --no-dev --optimize-autoloader' before deployment.",
+    "static": "Pre-built Next.js frontend files. Entire directory is deployed.",
+    "env": "Never deploy .env files. Create .env manually on server using .env.production.example as reference."
+  }
+}
