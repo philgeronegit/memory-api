@@ -90,6 +90,14 @@ if ($uri[2] !== 'login' && $uri[2] !== 'view') {
 
 $hasAdditionalSegment = isset($uri[4]);
 if ($hasAdditionalSegment) {
+  if ($uri[2] === 'role' and $uri[4] === 'permission' and $requestMethod === 'GET') {
+    $objController = new RoleController();
+    $args = array(
+      'id' => $uri[3]
+    );
+    $objController->getPermissionsByRole($args['id']);
+    exit();
+  }
   if ($uri[2] === 'project' and $uri[4] === 'user' and $requestMethod === 'GET') {
     $objController = new UserController();
     $args = array(
