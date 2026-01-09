@@ -210,3 +210,18 @@ CREATE TABLE log(
    date_time DATETIME NOT NULL,
    PRIMARY KEY(Id_log)
 );
+
+CREATE TABLE permission(
+   id_permission INT AUTO_INCREMENT,
+   name VARCHAR(50) NOT NULL,
+   PRIMARY KEY(id_permission),
+   UNIQUE(name)
+);
+
+CREATE TABLE permissions(
+   id_permission INT,
+   id_role INT,
+   PRIMARY KEY(id_permission, id_role),
+   CONSTRAINT fk_permissions_permission FOREIGN KEY(id_permission) REFERENCES permission(id_permission) ON DELETE CASCADE ON UPDATE CASCADE,
+   CONSTRAINT fk_permissions_role FOREIGN KEY(id_role) REFERENCES role(id_role) ON DELETE CASCADE ON UPDATE CASCADE
+);
