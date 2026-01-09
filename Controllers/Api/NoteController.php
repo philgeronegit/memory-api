@@ -22,7 +22,7 @@ class NoteController extends BaseController
           throw new Exception("Missing required fields for note creation.");
       }
 
-      return $this->model->add(
+      return $this->sendOutput($this->model->add(
         array(
           'title' => $title,
           'content' => $content,
@@ -32,7 +32,7 @@ class NoteController extends BaseController
           'id_programming_language' => $id_programming_language,
           'id_project' => $id_project
         )
-      );
+      ));
     });
   }
 
