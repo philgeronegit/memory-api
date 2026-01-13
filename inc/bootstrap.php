@@ -14,6 +14,11 @@ for ($i = 0; $i < count(glob(PROJECT_ROOT_PATH . "/Models/*.php")); $i++) {
   }
 }
 
+// Require all service files
+foreach (glob(PROJECT_ROOT_PATH . "/Services/*.php") as $serviceFile) {
+  require_once $serviceFile;
+}
+
 // Require all files in a loop from /Controllers/Api except BaseController.php
 for ($i = 0; $i < count(glob(PROJECT_ROOT_PATH . "/Controllers/Api/*.php")); $i++) {
   if (glob(PROJECT_ROOT_PATH . "/Controllers/Api/*.php")[$i] !== PROJECT_ROOT_PATH . "/Controllers/Api/BaseController.php") {
