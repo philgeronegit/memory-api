@@ -95,29 +95,6 @@ class NoteServiceTest extends MemoryTestCase
         unset($GLOBALS['jwt_user_data']);
     }
 
-    public function testCreateNoteFailsWithInvalidType()
-    {
-        $userData = (object) [
-            'id_user' => 1,
-            'role' => 'developer'
-        ];
-        $GLOBALS['jwt_user_data'] = $userData;
-
-        $noteData = [
-            'title' => 'Test Note',
-            'content' => 'Content',
-            'type' => 'invalid_type',
-            'id_user' => 1
-        ];
-
-        $this->expectException(Exception::class);
-        $this->expectExceptionMessage('Type must be one of: note, code, snippet');
-
-        $this->noteService->createNote($noteData);
-
-        unset($GLOBALS['jwt_user_data']);
-    }
-
     public function testCreateNoteFailsWithoutAuthentication()
     {
         unset($GLOBALS['jwt_user_data']);

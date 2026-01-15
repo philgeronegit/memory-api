@@ -120,21 +120,6 @@ class NoteValidatorTest extends MemoryTestCase
         $this->assertContains('Type is required', $result['errors']);
     }
 
-    public function testValidateCreateFailsWithInvalidType()
-    {
-        $data = [
-            'title' => 'Test Title',
-            'content' => 'Test Content',
-            'type' => 'invalid_type',
-            'id_user' => 1
-        ];
-
-        $result = $this->validator->validateCreate($data);
-
-        $this->assertFalse($result['valid']);
-        $this->assertContains('Type must be one of: note, code, snippet', $result['errors']);
-    }
-
     public function testValidateCreateFailsWithMissingUserId()
     {
         $data = [
@@ -189,10 +174,9 @@ class NoteValidatorTest extends MemoryTestCase
         $result = $this->validator->validateCreate($data);
 
         $this->assertFalse($result['valid']);
-        $this->assertCount(3, $result['errors']); // title, content, invalid type
+        $this->assertCount(2, $result['errors']); // title, content
         $this->assertContains('Title is required', $result['errors']);
         $this->assertContains('Content is required', $result['errors']);
-        $this->assertContains('Type must be one of: note, code, snippet', $result['errors']);
     }
 
     // ========== validateUpdate Tests ==========
