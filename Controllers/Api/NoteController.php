@@ -1,55 +1,30 @@
 <?php
 class NoteController extends BaseController
 {
+  private $noteService;
+
   public function __construct()
   {
     parent::__construct(new NoteModel());
+    $noteService = new NoteService($this->model);
+    $this->noteService = $noteService;
   }
 
   public function addAction(): void
   {
     $this->doAction($fn = function () {
-      $title = $this->getRequestBody('title');
-      $content = $this->getRequestBody('content');
-      $type = $this->getRequestBody('type');
-      $id_user = $this->getRequestBody('id_user');
-      $id_project = $this->getRequestBody('id_project');
-      $is_public = $this->getRequestBody('is_public');
-      $id_programming_language = $this->getRequestBody('id_programming_language');
+      $data = [
+        'title' => $this->getRequestBody('title'),
+        'content' => $this->getRequestBody('content'),
+        'type' => $this->getRequestBody('type'),
+        'id_user' => $this->getRequestBody('id_user'),
+        'id_project' => $this->getRequestBody('id_project'),
+        'is_public' => $this->getRequestBody('is_public'),
+        'id_programming_language' => $this->getRequestBody('id_programming_language'),
+      ];
 
-      // Validate required fields to prevent incomplete note creation
-      if (empty($title) || empty($content) || empty($type) || empty($id_user)) {
-          throw new Exception("Missing required fields for note creation.");
-      }
-
-      return $this->sendOutput($this->model->add(
-        array(
-          'title' => $title,
-          'content' => $content,
-          'type' => $type,
-          'id_user' => $id_user,
-          'is_public' => $is_public,
-          'id_programming_language' => $id_programming_language,
-          'id_project' => $id_project
-        )
-      ));
+      return $this->sendOutput($this->noteService->createNote($data));
     });
-  }
-
-  /**
-   * Check if the current user has permission to update or remove the note.
-   * A user can update or remove a note if they are the owner of the note or have admin permissions.
-   * @param int $noteId The ID of the note to check permissions for.
-   * @return bool True if the user has permission, false otherwise.
-   */
-  protected function hasUpdateOrRemovePermissions($noteId): bool {
-    $currentUserId = $this->getCurrentUserId();
-    $note = $this->model->getOne($noteId);
-
-    $isCurrentUser = $note->id_user === $currentUserId;
-    $hasPermission = $this->hasPermission('admin');
-
-    return $isCurrentUser || $hasPermission;
   }
 
   public function updateAction(): void
@@ -57,47 +32,28 @@ class NoteController extends BaseController
     $this->doAction($fn = function () {
       $id = $this->getUriSegments()[3];
 
-      if (!$this->hasUpdateOrRemovePermissions($id)) {
-        throw new Exception("Unauthorized: You do not have permission to update this note.");
-      }
+      $data = [
+        'user_id' => $this->getRequestBody('user_id'),
+        'title' => $this->getRequestBody('title'),
+        'content' => $this->getRequestBody('content'),
+        'is_public' => $this->getRequestBody('is_public'),
+        'id_project' => $this->getRequestBody('id_project'),
+        'id_programming_language' => $this->getRequestBody('id_programming_language'),
+      ];
 
-      $user_id = $this->getRequestBody('user_id');
-      $title = $this->getRequestBody('title');
-      $content = $this->getRequestBody('content');
-      $is_public = $this->getRequestBody('is_public');
-      $id_project = $this->getRequestBody('id_project');
-      $id_programming_language = $this->getRequestBody('id_programming_language');
-
-      // Validate required fields to prevent incomplete note updates
-      if (empty($id) || (empty($title) && empty($content))) {
-          throw new Exception("Missing required fields for note update.");
-      }
-
-      return $this->model->modify(
-        array(
-          'id' => $id,
-          'user_id' => $user_id,
-          'title' => $title,
-          'content' => $content,
-          'is_public' => $is_public,
-          'id_programming_language' => $id_programming_language,
-          'id_project' => $id_project
-        )
-      );
+      return $this->noteService->updateNote($id, $data);
     });
   }
 
   public function shareNoteWithUser(): void
   {
     $this->doAction($fn = function () {
-      $id_item = $this->getRequestBody('id_item');
-      $id_user = $this->getRequestBody('id_user');
-      return $this->sendOutput($this->model->shareNoteWithUser(
-        array(
-          'id_item' => $id_item,
-          'id_user' => $id_user
-        )
-      ));
+      $data = [
+        'id_item' => $this->getRequestBody('id_item'),
+        'id_user' => $this->getRequestBody('id_user'),
+      ];
+
+      return $this->sendOutput($this->noteService->shareNote($data));
     });
   }
 
@@ -105,12 +61,7 @@ class NoteController extends BaseController
   {
     $this->doAction($fn = function () {
       $id = $this->getUriSegments()[3];
-
-      if (!$this->hasUpdateOrRemovePermissions($id)) {
-        throw new Exception("Unauthorized: You do not have permission to delete this note.");
-      }
-
-      return $this->model->remove($id);
+      return $this->noteService->deleteNote($id);
     });
   }
 }
