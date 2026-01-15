@@ -32,10 +32,6 @@ class NoteValidator
             $errors[] = 'Title must not exceed 255 characters';
         }
 
-        if (!empty($data['type']) && !in_array($data['type'], ['note', 'code', 'snippet'])) {
-            $errors[] = 'Type must be one of: note, code, snippet';
-        }
-
         return [
             'valid' => empty($errors),
             'errors' => $errors
