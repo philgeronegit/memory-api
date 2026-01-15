@@ -86,6 +86,47 @@ class BaseController
   }
 
   /**
+   * Map controller class name to resource name
+   *
+   * @param string $controllerClass
+   * @return string|null
+   */
+  protected function getResourceNameFromController($controllerClass)
+  {
+    $mapping = [
+      'NoteController' => 'notes',
+      'UserController' => 'users',
+      'ProjectController' => 'projects',
+      'TaskController' => 'tasks',
+      'CommentController' => 'comments',
+      'MessageController' => 'messages',
+      'TagController' => 'tags',
+      'RoleController' => 'roles',
+      'DeveloperController' => 'developers',
+      'ProgrammingLanguageController' => 'programmingLanguages',
+      'StatusController' => 'statuses',
+      'ScoreController' => 'scores',
+      'ShareController' => 'shares',
+      'TechnicalSkillController' => 'technicalSkills',
+    ];
+
+    return $mapping[$controllerClass] ?? null;
+  }
+
+  /**
+   * Check if a resource requires read permission
+   *
+   * @param string $resourceName
+   * @return bool
+   */
+  protected function requiresReadPermission($resourceName)
+  {
+    $protectedResources = ['notes', 'users', 'projects', 'tasks', 'messages'];
+
+    return in_array($resourceName, $protectedResources);
+  }
+
+  /**
    * Get URI elements.
    * Returns an array of URI elements.
    *
@@ -189,8 +230,8 @@ class BaseController
       } else {
         $responseData = json_encode($res);
       }
-    } catch (Error $e) {
-      $strErrorDesc = $e->getMessage() . 'Something went wrong! Please contact support.';
+    } catch (Throwable $e) {
+      $strErrorDesc = $e->getMessage();
       $strErrorHeader = 'HTTP/1.1 500 Internal Server Error';
     }
     // send output
@@ -210,6 +251,24 @@ class BaseController
   public function listAction($args = [])
   {
     $this->doAction($fn = function ($args) {
+      $controllerClass = get_class($this);
+      $resourceName = $this->getResourceNameFromController($controllerClass);
+
+      if ($resourceName && $this->requiresReadPermission($resourceName)) {
+        $user = $this->getAuthenticatedUser();
+        $authService = AuthorizationService::getInstance();
+
+        if (!$authService->can($user, $resourceName, 'view')) {
+          $authService->logAuthorizationFailure(
+            $resourceName,
+            'view',
+            $user->id_user ?? null,
+            $user->role ?? 'unknown'
+          );
+          throw new Exception("You do not have permission to view $resourceName");
+        }
+      }
+
       $intLimit = $this->getQueryString('limit', 50);
       $args['limit'] = $intLimit;
 
@@ -248,6 +307,24 @@ class BaseController
   public function getAction(): void
   {
     $this->doAction($fn = function () {
+      $controllerClass = get_class($this);
+      $resourceName = $this->getResourceNameFromController($controllerClass);
+
+      if ($resourceName && $this->requiresReadPermission($resourceName)) {
+        $user = $this->getAuthenticatedUser();
+        $authService = AuthorizationService::getInstance();
+
+        if (!$authService->can($user, $resourceName, 'view')) {
+          $authService->logAuthorizationFailure(
+            $resourceName,
+            'view',
+            $user->id_user ?? null,
+            $user->role ?? 'unknown'
+          );
+          throw new Exception("You do not have permission to view this $resourceName");
+        }
+      }
+
       $id = $this->getUriSegments()[3];
       $args = $this->getQueryStringParams();
       return $this->sendOutput($this->model->getOne($id, $args));

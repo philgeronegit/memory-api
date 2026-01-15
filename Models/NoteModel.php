@@ -211,19 +211,32 @@ class NoteModel extends Database implements IModel
     $is_public = $paramsArray['is_public'];
     $id_programming_language = $paramsArray['id_programming_language'];
     $now = date('Y-m-d H:i:s');
-    $item_id = $this->insert(
-      "INSERT INTO item (title, description, created_at) VALUES (?, ?, ?)",
-      ["sss", $title, $content, $now]
-    );
-    $this->insert(
-      "INSERT INTO note (id_item, type, is_public, id_user, id_project, id_programming_language) VALUES (?, ?, ?, ?, ?, ?)",
-      ["isiiii", $item_id, $type, $is_public, $id_user, $id_project, $id_programming_language]
-    );
 
-    $query = $this->baseQuery . <<<SQL
-    WHERE item.id_item = ?
-    SQL;
-    return $this->selectOne($query, ["i", $item_id]);
+    // Begin transaction to ensure data consistency
+    $this->connection->begin_transaction();
+
+    try {
+      $item_id = $this->insert(
+        "INSERT INTO item (title, description, created_at) VALUES (?, ?, ?)",
+        ["sss", $title, $content, $now]
+      );
+      $this->insert(
+        "INSERT INTO note (id_item, type, is_public, id_user, id_project, id_programming_language) VALUES (?, ?, ?, ?, ?, ?)",
+        ["isiiii", $item_id, $type, $is_public, $id_user, $id_project, $id_programming_language]
+      );
+
+      // Commit the transaction
+      $this->connection->commit();
+
+      $query = $this->baseQuery . <<<SQL
+        WHERE item.id_item = ?
+      SQL;
+      return $this->selectOne($query, ["i", $item_id]);
+    } catch (Exception $e) {
+      // Rollback the transaction on error
+      $this->connection->rollback();
+      throw $e;
+    }
   }
 
   public function modify($paramsArray)

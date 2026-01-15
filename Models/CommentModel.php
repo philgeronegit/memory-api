@@ -85,6 +85,8 @@ class CommentModel extends Database implements IModel
 
   public function remove($id)
   {
+    $this->delete("DELETE FROM comment_scores WHERE id_comment = ?", ["i", $id]);
+
     return $this->delete("DELETE FROM comment WHERE id_comment = ?", ["i", $id]);
   }
 
@@ -95,18 +97,18 @@ class CommentModel extends Database implements IModel
     $id_item = $paramsArray['id_item'];
     $now = date('Y-m-d H:i:s');
 
-    $this->insert(
+    $id = $this->insert(
       "INSERT INTO comment (content, created_at,id_user, id_item) VALUES (?, ?, ?, ?)",
       ["ssii", $content, $now, $id_user, $id_item]
     );
 
-    $id = $this->insert(
+    $this->insert(
       "INSERT INTO comment_scores (id_comment, id_user) VALUES (?, ?)",
-      ["ii", $id_item, $id_user]
+      ["ii", $id, $id_user]
     );
 
     $query = $this->baseQuery . <<<SQL
-    WHERE id_comment = ?
+    WHERE c.id_comment = ?
     SQL;
     return $this->selectOne($query, ["i", $id]);
   }
