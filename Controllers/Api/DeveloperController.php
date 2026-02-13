@@ -12,7 +12,7 @@ class DeveloperController extends BaseController
 
       $username = $this->getRequestBody('username');
       $email = $this->getRequestBody('email');
-      return $this->model->add(array('username' => $username, 'email' =>  $email));
+      return $this->sendOutput($this->model->add(array('username' => $username, 'email' =>  $email)));
     });
   }
 
@@ -25,14 +25,14 @@ class DeveloperController extends BaseController
       $avatar_url = $this->getRequestBody('avatar_url');
       $id_role = $this->getRequestBody('id_role');
       $is_admin = $this->getRequestBody('is_admin');
-      return $this->model->modify(array(
+      return $this->sendOutput($this->model->modify(array(
         'id' => $id,
         'username' => $username,
         'email' =>  $email,
         'avatar_url' => $avatar_url,
         'id_role' => $id_role,
         'is_admin' => $is_admin
-      ));
+      )));
     });
   }
 }
