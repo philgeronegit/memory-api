@@ -1,0 +1,2115 @@
+openapi: 3.0.3
+info:
+  title: Memory API
+  description: |
+    API RESTful pour l'application de prise de notes Memory.
+
+    ## Authentification
+    Toutes les routes (sauf `/login` et `/view`) nécessitent un token JWT valide.
+    Le token doit être envoyé dans l'en-tête `Authorization` avec le format `Bearer {token}`.
+
+    ## Sécurité
+    - Toutes les requêtes utilisent HTTPS en production
+    - Les mots de passe sont hashés avec bcrypt
+    - Gestion CORS configurée pour le frontend
+    - Validation des entrées côté serveur
+  version: 1.0.0
+  contact:
+    name: Support API Memory
+    email: support@memory-api.local
+
+servers:
+  - url: http://localhost:8000/memory
+    description: Serveur de développement local
+  - url: http://localhost/memory
+    description: Serveur WAMP local
+
+tags:
+  - name: Authentication
+    description: Endpoints d'authentification et gestion des sessions
+  - name: Users
+    description: Gestion des utilisateurs
+  - name: Notes
+    description: Gestion des notes
+  - name: Projects
+    description: Gestion des projets
+  - name: Tasks
+    description: Gestion des tâches
+  - name: Comments
+    description: Gestion des commentaires sur les notes
+  - name: Tags
+    description: Gestion des tags/étiquettes
+  - name: Scores
+    description: Gestion des scores/notes des items
+  - name: Messages
+    description: Gestion de la messagerie entre utilisateurs
+  - name: Shares
+    description: Gestion du partage de notes
+  - name: Uploads
+    description: Gestion des fichiers uploadés
+  - name: Technical Skills
+    description: Gestion des compétences techniques des utilisateurs
+  - name: Roles
+    description: Gestion des rôles et permissions
+  - name: Programming Languages
+    description: Gestion des langages de programmation
+  - name: Status
+    description: Gestion des statuts
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Token JWT obtenu via l'endpoint /login
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Message d'erreur
+      required:
+        - error
+
+    User:
+      type: object
+      properties:
+        id_user:
+          type: integer
+          description: ID unique de l'utilisateur
+        username:
+          type: string
+          description: Nom d'utilisateur
+        email:
+          type: string
+          format: email
+          description: Adresse email
+        avatar_url:
+          type: string
+          description: URL de l'avatar
+        id_role:
+          type: integer
+          description: ID du rôle
+        is_admin:
+          type: boolean
+          description: Indique si l'utilisateur est administrateur
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    UserCreate:
+      type: object
+      required:
+        - username
+        - email
+        - password
+      properties:
+        username:
+          type: string
+          minLength: 3
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        avatar_url:
+          type: string
+        id_role:
+          type: integer
+        is_admin:
+          type: boolean
+          default: false
+
+    UserUpdate:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        avatar_url:
+          type: string
+        id_role:
+          type: integer
+        is_admin:
+          type: boolean
+
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          description: Nom d'utilisateur ou email
+        password:
+          type: string
+          description: Mot de passe de l'utilisateur
+
+    LoginResponse:
+      type: object
+      properties:
+        id_user:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string
+        token:
+          type: string
+          description: Token JWT pour l'authentification
+        expires_at:
+          type: string
+          format: date-time
+
+    Note:
+      type: object
+      properties:
+        id_item:
+          type: integer
+          description: ID unique de la note
+        title:
+          type: string
+          description: Titre de la note
+        content:
+          type: string
+          description: Contenu de la note
+        type:
+          type: string
+          description: Type de la note
+        is_public:
+          type: boolean
+          description: Indique si la note est publique
+        id_user:
+          type: integer
+          description: ID de l'utilisateur propriétaire
+        id_project:
+          type: integer
+          description: ID du projet associé
+        id_programming_language:
+          type: integer
+          description: ID du langage de programmation
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    NoteCreate:
+      type: object
+      required:
+        - title
+        - content
+        - id_user
+      properties:
+        title:
+          type: string
+          minLength: 1
+        content:
+          type: string
+        type:
+          type: string
+        id_user:
+          type: integer
+        id_project:
+          type: integer
+        is_public:
+          type: boolean
+          default: false
+        id_programming_language:
+          type: integer
+
+    NoteUpdate:
+      type: object
+      properties:
+        user_id:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+        is_public:
+          type: boolean
+        id_project:
+          type: integer
+        id_programming_language:
+          type: integer
+
+    Project:
+      type: object
+      properties:
+        id_project:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        id_user:
+          type: integer
+          description: ID du propriétaire du projet
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ProjectCreate:
+      type: object
+      required:
+        - name
+        - id_user
+      properties:
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        id_user:
+          type: integer
+
+    ProjectUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+
+    Task:
+      type: object
+      properties:
+        id_task:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        id_status:
+          type: integer
+        id_user:
+          type: integer
+        display_order:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Comment:
+      type: object
+      properties:
+        id_comment:
+          type: integer
+        content:
+          type: string
+        id_user:
+          type: integer
+        id_item:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Tag:
+      type: object
+      properties:
+        id_tag:
+          type: integer
+        name:
+          type: string
+        color:
+          type: string
+
+    Score:
+      type: object
+      properties:
+        id_score:
+          type: integer
+        score:
+          type: integer
+          minimum: 1
+          maximum: 5
+        id_user:
+          type: integer
+        id_item:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+
+    Message:
+      type: object
+      properties:
+        id_message:
+          type: integer
+        content:
+          type: string
+        id_sender:
+          type: integer
+        id_receiver:
+          type: integer
+        is_read:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    Share:
+      type: object
+      properties:
+        id_share:
+          type: integer
+        id_item:
+          type: integer
+        id_user:
+          type: integer
+        shared_at:
+          type: string
+          format: date-time
+
+    Role:
+      type: object
+      properties:
+        id_role:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+
+    ProgrammingLanguage:
+      type: object
+      properties:
+        id_programming_language:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+
+    TechnicalSkill:
+      type: object
+      properties:
+        id_technical_skill:
+          type: integer
+        name:
+          type: string
+        level:
+          type: integer
+          minimum: 1
+          maximum: 5
+        id_user:
+          type: integer
+
+    Status:
+      type: object
+      properties:
+        id_status:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+
+security:
+  - bearerAuth: []
+
+paths:
+  /login:
+    post:
+      tags:
+        - Authentication
+      summary: Connexion utilisateur
+      description: Authentifie un utilisateur et retourne un token JWT
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              username: "john.doe"
+              password: "SecureP@ss123"
+      responses:
+        '200':
+          description: Authentification réussie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Identifiants invalides
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Invalid credentials"
+
+  /user:
+    get:
+      tags:
+        - Users
+      summary: Liste tous les utilisateurs
+      description: Récupère la liste complète des utilisateurs
+      responses:
+        '200':
+          description: Liste des utilisateurs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '401':
+          description: Non autorisé - Token manquant ou invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      tags:
+        - Users
+      summary: Créer un utilisateur
+      description: Crée un nouveau compte utilisateur
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+            example:
+              username: "john.doe"
+              email: "john.doe@example.com"
+              password: "SecureP@ss123"
+              id_role: 2
+              is_admin: false
+      responses:
+        '201':
+          description: Utilisateur créé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Données invalides
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /user/{id}:
+    get:
+      tags:
+        - Users
+      summary: Récupérer un utilisateur
+      description: Récupère les détails d'un utilisateur spécifique
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de l'utilisateur
+      responses:
+        '200':
+          description: Détails de l'utilisateur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: Utilisateur non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      tags:
+        - Users
+      summary: Mettre à jour un utilisateur
+      description: Met à jour les informations d'un utilisateur existant
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de l'utilisateur
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+      responses:
+        '200':
+          description: Utilisateur mis à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: Utilisateur non trouvé
+
+    delete:
+      tags:
+        - Users
+      summary: Supprimer un utilisateur
+      description: Supprime un utilisateur du système
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de l'utilisateur
+      responses:
+        '200':
+          description: Utilisateur supprimé avec succès
+        '404':
+          description: Utilisateur non trouvé
+
+  /user/{id}/note:
+    get:
+      tags:
+        - Users
+        - Notes
+      summary: Liste les notes d'un utilisateur
+      description: Récupère toutes les notes créées par un utilisateur spécifique
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de l'utilisateur
+      responses:
+        '200':
+          description: Liste des notes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Note'
+
+  /user/{id}/project:
+    get:
+      tags:
+        - Users
+        - Projects
+      summary: Liste les projets d'un utilisateur
+      description: Récupère tous les projets associés à un utilisateur
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de l'utilisateur
+      responses:
+        '200':
+          description: Liste des projets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
+
+    post:
+      tags:
+        - Users
+        - Projects
+      summary: Ajouter un utilisateur à un projet
+      description: Associe un utilisateur à un projet existant
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de l'utilisateur
+      responses:
+        '200':
+          description: Utilisateur ajouté au projet
+
+    delete:
+      tags:
+        - Users
+        - Projects
+      summary: Retirer un utilisateur d'un projet
+      description: Dissocie un utilisateur d'un projet
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de l'utilisateur
+      responses:
+        '200':
+          description: Utilisateur retiré du projet
+
+  /user/{id}/task:
+    get:
+      tags:
+        - Users
+        - Tasks
+      summary: Liste les tâches d'un utilisateur
+      description: Récupère toutes les tâches assignées à un utilisateur
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de l'utilisateur
+      responses:
+        '200':
+          description: Liste des tâches
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+
+  /user/{id}/message:
+    get:
+      tags:
+        - Users
+        - Messages
+      summary: Liste les messages d'un utilisateur
+      description: Récupère tous les messages reçus par un utilisateur
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de l'utilisateur
+      responses:
+        '200':
+          description: Liste des messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Message'
+
+    post:
+      tags:
+        - Users
+        - Messages
+      summary: Envoyer un message à un utilisateur
+      description: Crée et envoie un nouveau message à un utilisateur
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de l'utilisateur destinataire
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                id_sender:
+                  type: integer
+      responses:
+        '201':
+          description: Message envoyé
+
+    put:
+      tags:
+        - Users
+        - Messages
+      summary: Modifier un message d'un utilisateur
+      description: Met à jour un message existant
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de l'utilisateur
+      responses:
+        '200':
+          description: Message modifié
+
+  /user/{id}/technical-skill:
+    get:
+      tags:
+        - Users
+        - Technical Skills
+      summary: Liste les compétences techniques d'un utilisateur
+      description: Récupère toutes les compétences techniques d'un utilisateur
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de l'utilisateur
+      responses:
+        '200':
+          description: Liste des compétences
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TechnicalSkill'
+
+    post:
+      tags:
+        - Users
+        - Technical Skills
+      summary: Ajouter une compétence technique
+      description: Ajoute une nouvelle compétence technique à un utilisateur
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de l'utilisateur
+      responses:
+        '201':
+          description: Compétence ajoutée
+
+    put:
+      tags:
+        - Users
+        - Technical Skills
+      summary: Mettre à jour une compétence technique
+      description: Met à jour le niveau d'une compétence technique
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de l'utilisateur
+      responses:
+        '200':
+          description: Compétence mise à jour
+
+    delete:
+      tags:
+        - Users
+        - Technical Skills
+      summary: Supprimer une compétence technique
+      description: Supprime une compétence technique d'un utilisateur
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de l'utilisateur
+      responses:
+        '200':
+          description: Compétence supprimée
+
+  /user/{id}/upload:
+    get:
+      tags:
+        - Users
+        - Uploads
+      summary: Liste les fichiers uploadés par un utilisateur
+      description: Récupère tous les fichiers uploadés par un utilisateur
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de l'utilisateur
+      responses:
+        '200':
+          description: Liste des fichiers
+
+  /note:
+    get:
+      tags:
+        - Notes
+      summary: Liste toutes les notes
+      description: Récupère la liste complète des notes accessibles
+      responses:
+        '200':
+          description: Liste des notes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Note'
+
+    post:
+      tags:
+        - Notes
+      summary: Créer une note
+      description: Crée une nouvelle note
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NoteCreate'
+            example:
+              title: "Ma nouvelle note"
+              content: "Contenu de la note..."
+              type: "code"
+              id_user: 1
+              id_project: 3
+              is_public: false
+              id_programming_language: 2
+      responses:
+        '201':
+          description: Note créée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+
+  /note/{id}:
+    get:
+      tags:
+        - Notes
+      summary: Récupérer une note
+      description: Récupère les détails d'une note spécifique
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la note
+      responses:
+        '200':
+          description: Détails de la note
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+        '404':
+          description: Note non trouvée
+
+    put:
+      tags:
+        - Notes
+      summary: Mettre à jour une note
+      description: Met à jour une note existante
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la note
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NoteUpdate'
+      responses:
+        '200':
+          description: Note mise à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+
+    delete:
+      tags:
+        - Notes
+      summary: Supprimer une note
+      description: Supprime une note du système
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la note
+      responses:
+        '200':
+          description: Note supprimée avec succès
+
+  /note/{id}/comment:
+    get:
+      tags:
+        - Notes
+        - Comments
+      summary: Liste les commentaires d'une note
+      description: Récupère tous les commentaires associés à une note
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la note
+      responses:
+        '200':
+          description: Liste des commentaires
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+
+  /note/{id}/tag:
+    get:
+      tags:
+        - Notes
+        - Tags
+      summary: Liste les tags d'une note
+      description: Récupère tous les tags associés à une note
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la note
+      responses:
+        '200':
+          description: Liste des tags
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tag'
+
+    post:
+      tags:
+        - Notes
+        - Tags
+      summary: Ajouter un tag à une note
+      description: Associe un tag existant à une note
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la note
+      responses:
+        '201':
+          description: Tag ajouté
+
+    put:
+      tags:
+        - Notes
+        - Tags
+      summary: Mettre à jour un tag d'une note
+      description: Met à jour un tag associé à une note
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la note
+      responses:
+        '200':
+          description: Tag mis à jour
+
+    delete:
+      tags:
+        - Notes
+        - Tags
+      summary: Retirer un tag d'une note
+      description: Dissocie un tag d'une note
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la note
+      responses:
+        '200':
+          description: Tag retiré
+
+  /note/{id}/share:
+    get:
+      tags:
+        - Notes
+        - Shares
+      summary: Liste les partages d'une note
+      description: Récupère tous les utilisateurs avec qui une note est partagée
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la note
+      responses:
+        '200':
+          description: Liste des partages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Share'
+
+    post:
+      tags:
+        - Notes
+        - Shares
+      summary: Partager une note avec un utilisateur
+      description: Partage une note avec un ou plusieurs utilisateurs
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la note
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id_item:
+                  type: integer
+                id_user:
+                  type: integer
+      responses:
+        '201':
+          description: Note partagée
+
+  /note/{id}/score:
+    post:
+      tags:
+        - Notes
+        - Scores
+      summary: Ajouter un score à une note
+      description: Attribue un score/note à une note
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la note
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                score:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                id_user:
+                  type: integer
+                id_item:
+                  type: integer
+      responses:
+        '201':
+          description: Score ajouté
+
+    put:
+      tags:
+        - Notes
+        - Scores
+      summary: Mettre à jour le score d'une note
+      description: Modifie le score précédemment attribué à une note
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la note
+      responses:
+        '200':
+          description: Score mis à jour
+
+  /project:
+    get:
+      tags:
+        - Projects
+      summary: Liste tous les projets
+      description: Récupère la liste complète des projets
+      responses:
+        '200':
+          description: Liste des projets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
+
+    post:
+      tags:
+        - Projects
+      summary: Créer un projet
+      description: Crée un nouveau projet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectCreate'
+            example:
+              name: "Projet API Memory"
+              description: "API RESTful pour la gestion de notes"
+              id_user: 1
+      responses:
+        '201':
+          description: Projet créé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+
+  /project/{id}:
+    get:
+      tags:
+        - Projects
+      summary: Récupérer un projet
+      description: Récupère les détails d'un projet spécifique
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID du projet
+      responses:
+        '200':
+          description: Détails du projet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+
+    put:
+      tags:
+        - Projects
+      summary: Mettre à jour un projet
+      description: Met à jour les informations d'un projet
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID du projet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectUpdate'
+      responses:
+        '200':
+          description: Projet mis à jour
+
+    delete:
+      tags:
+        - Projects
+      summary: Supprimer un projet
+      description: Supprime un projet du système
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID du projet
+      responses:
+        '200':
+          description: Projet supprimé
+
+  /project/{id}/user:
+    get:
+      tags:
+        - Projects
+        - Users
+      summary: Liste les utilisateurs d'un projet
+      description: Récupère tous les utilisateurs associés à un projet
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID du projet
+      responses:
+        '200':
+          description: Liste des utilisateurs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+
+  /task:
+    get:
+      tags:
+        - Tasks
+      summary: Liste toutes les tâches
+      description: Récupère la liste complète des tâches
+      responses:
+        '200':
+          description: Liste des tâches
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+
+    post:
+      tags:
+        - Tasks
+      summary: Créer une tâche
+      description: Crée une nouvelle tâche
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                id_status:
+                  type: integer
+                id_user:
+                  type: integer
+                display_order:
+                  type: integer
+      responses:
+        '201':
+          description: Tâche créée
+
+  /task/{id}:
+    get:
+      tags:
+        - Tasks
+      summary: Récupérer une tâche
+      description: Récupère les détails d'une tâche spécifique
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la tâche
+      responses:
+        '200':
+          description: Détails de la tâche
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+
+    put:
+      tags:
+        - Tasks
+      summary: Mettre à jour une tâche
+      description: Met à jour une tâche existante
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la tâche
+      responses:
+        '200':
+          description: Tâche mise à jour
+
+    delete:
+      tags:
+        - Tasks
+      summary: Supprimer une tâche
+      description: Supprime une tâche du système
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la tâche
+      responses:
+        '200':
+          description: Tâche supprimée
+
+  /task/order:
+    put:
+      tags:
+        - Tasks
+      summary: Réorganiser les tâches
+      description: Met à jour l'ordre d'affichage des tâches (drag & drop)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tasks:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id_task:
+                        type: integer
+                      display_order:
+                        type: integer
+      responses:
+        '200':
+          description: Ordre des tâches mis à jour
+
+  /comment:
+    get:
+      tags:
+        - Comments
+      summary: Liste tous les commentaires
+      description: Récupère la liste complète des commentaires
+      responses:
+        '200':
+          description: Liste des commentaires
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+
+    post:
+      tags:
+        - Comments
+      summary: Créer un commentaire
+      description: Crée un nouveau commentaire sur une note
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                id_user:
+                  type: integer
+                id_item:
+                  type: integer
+      responses:
+        '201':
+          description: Commentaire créé
+
+  /comment/{id}:
+    get:
+      tags:
+        - Comments
+      summary: Récupérer un commentaire
+      description: Récupère les détails d'un commentaire spécifique
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID du commentaire
+      responses:
+        '200':
+          description: Détails du commentaire
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+
+    put:
+      tags:
+        - Comments
+      summary: Mettre à jour un commentaire
+      description: Met à jour un commentaire existant
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID du commentaire
+      responses:
+        '200':
+          description: Commentaire mis à jour
+
+    delete:
+      tags:
+        - Comments
+      summary: Supprimer un commentaire
+      description: Supprime un commentaire
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID du commentaire
+      responses:
+        '200':
+          description: Commentaire supprimé
+
+  /tag:
+    get:
+      tags:
+        - Tags
+      summary: Liste tous les tags
+      description: Récupère la liste complète des tags
+      responses:
+        '200':
+          description: Liste des tags
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tag'
+
+    post:
+      tags:
+        - Tags
+      summary: Créer un tag
+      description: Crée un nouveau tag
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                color:
+                  type: string
+      responses:
+        '201':
+          description: Tag créé
+
+  /tag/{id}:
+    get:
+      tags:
+        - Tags
+      summary: Récupérer un tag
+      description: Récupère les détails d'un tag spécifique
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID du tag
+      responses:
+        '200':
+          description: Détails du tag
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tag'
+
+    put:
+      tags:
+        - Tags
+      summary: Mettre à jour un tag
+      description: Met à jour un tag existant
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID du tag
+      responses:
+        '200':
+          description: Tag mis à jour
+
+    delete:
+      tags:
+        - Tags
+      summary: Supprimer un tag
+      description: Supprime un tag
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID du tag
+      responses:
+        '200':
+          description: Tag supprimé
+
+  /message:
+    get:
+      tags:
+        - Messages
+      summary: Liste tous les messages
+      description: Récupère la liste complète des messages
+      responses:
+        '200':
+          description: Liste des messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Message'
+
+    post:
+      tags:
+        - Messages
+      summary: Créer un message
+      description: Envoie un nouveau message
+      responses:
+        '201':
+          description: Message créé
+
+  /message/{id}:
+    get:
+      tags:
+        - Messages
+      summary: Récupérer un message
+      description: Récupère les détails d'un message spécifique
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID du message
+      responses:
+        '200':
+          description: Détails du message
+
+    put:
+      tags:
+        - Messages
+      summary: Mettre à jour un message
+      description: Met à jour un message (ex. marquer comme lu)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID du message
+      responses:
+        '200':
+          description: Message mis à jour
+
+    delete:
+      tags:
+        - Messages
+      summary: Supprimer un message
+      description: Supprime un message
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID du message
+      responses:
+        '200':
+          description: Message supprimé
+
+  /role:
+    get:
+      tags:
+        - Roles
+      summary: Liste tous les rôles
+      description: Récupère la liste complète des rôles
+      responses:
+        '200':
+          description: Liste des rôles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Role'
+
+    post:
+      tags:
+        - Roles
+      summary: Créer un rôle
+      description: Crée un nouveau rôle
+      responses:
+        '201':
+          description: Rôle créé
+
+  /role/{id}:
+    get:
+      tags:
+        - Roles
+      summary: Récupérer un rôle
+      description: Récupère les détails d'un rôle spécifique
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID du rôle
+      responses:
+        '200':
+          description: Détails du rôle
+
+    put:
+      tags:
+        - Roles
+      summary: Mettre à jour un rôle
+      description: Met à jour un rôle existant
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID du rôle
+      responses:
+        '200':
+          description: Rôle mis à jour
+
+    delete:
+      tags:
+        - Roles
+      summary: Supprimer un rôle
+      description: Supprime un rôle
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID du rôle
+      responses:
+        '200':
+          description: Rôle supprimé
+
+  /role/{id}/permission:
+    get:
+      tags:
+        - Roles
+      summary: Liste les permissions d'un rôle
+      description: Récupère toutes les permissions associées à un rôle
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID du rôle
+      responses:
+        '200':
+          description: Liste des permissions
+
+  /programming-language:
+    get:
+      tags:
+        - Programming Languages
+      summary: Liste tous les langages de programmation
+      description: Récupère la liste complète des langages
+      responses:
+        '200':
+          description: Liste des langages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProgrammingLanguage'
+
+    post:
+      tags:
+        - Programming Languages
+      summary: Créer un langage de programmation
+      description: Ajoute un nouveau langage à la liste
+      responses:
+        '201':
+          description: Langage créé
+
+  /programming-language/{id}:
+    get:
+      tags:
+        - Programming Languages
+      summary: Récupérer un langage de programmation
+      description: Récupère les détails d'un langage spécifique
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID du langage
+      responses:
+        '200':
+          description: Détails du langage
+
+    put:
+      tags:
+        - Programming Languages
+      summary: Mettre à jour un langage
+      description: Met à jour un langage existant
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID du langage
+      responses:
+        '200':
+          description: Langage mis à jour
+
+    delete:
+      tags:
+        - Programming Languages
+      summary: Supprimer un langage
+      description: Supprime un langage de programmation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID du langage
+      responses:
+        '200':
+          description: Langage supprimé
+
+  /status:
+    get:
+      tags:
+        - Status
+      summary: Liste tous les statuts
+      description: Récupère la liste complète des statuts
+      responses:
+        '200':
+          description: Liste des statuts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Status'
+
+    post:
+      tags:
+        - Status
+      summary: Créer un statut
+      description: Crée un nouveau statut
+      responses:
+        '201':
+          description: Statut créé
+
+  /status/{id}:
+    get:
+      tags:
+        - Status
+      summary: Récupérer un statut
+      description: Récupère les détails d'un statut spécifique
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID du statut
+      responses:
+        '200':
+          description: Détails du statut
+
+    put:
+      tags:
+        - Status
+      summary: Mettre à jour un statut
+      description: Met à jour un statut existant
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID du statut
+      responses:
+        '200':
+          description: Statut mis à jour
+
+    delete:
+      tags:
+        - Status
+      summary: Supprimer un statut
+      description: Supprime un statut
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID du statut
+      responses:
+        '200':
+          description: Statut supprimé
+
+  /technical-skill:
+    get:
+      tags:
+        - Technical Skills
+      summary: Liste toutes les compétences techniques
+      description: Récupère la liste complète des compétences
+      responses:
+        '200':
+          description: Liste des compétences
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TechnicalSkill'
+
+    post:
+      tags:
+        - Technical Skills
+      summary: Créer une compétence technique
+      description: Crée une nouvelle compétence
+      responses:
+        '201':
+          description: Compétence créée
+
+  /technical-skill/{id}:
+    get:
+      tags:
+        - Technical Skills
+      summary: Récupérer une compétence technique
+      description: Récupère les détails d'une compétence spécifique
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la compétence
+      responses:
+        '200':
+          description: Détails de la compétence
+
+    put:
+      tags:
+        - Technical Skills
+      summary: Mettre à jour une compétence
+      description: Met à jour une compétence existante
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la compétence
+      responses:
+        '200':
+          description: Compétence mise à jour
+
+    delete:
+      tags:
+        - Technical Skills
+      summary: Supprimer une compétence
+      description: Supprime une compétence technique
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la compétence
+      responses:
+        '200':
+          description: Compétence supprimée
+
+  /upload:
+    get:
+      tags:
+        - Uploads
+      summary: Liste tous les fichiers uploadés
+      description: Récupère la liste complète des fichiers
+      responses:
+        '200':
+          description: Liste des fichiers
+
+    post:
+      tags:
+        - Uploads
+      summary: Uploader un fichier
+      description: Upload un nouveau fichier
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                id_user:
+                  type: integer
+      responses:
+        '201':
+          description: Fichier uploadé
+
+  /upload/{id}:
+    get:
+      tags:
+        - Uploads
+      summary: Récupérer les infos d'un fichier
+      description: Récupère les métadonnées d'un fichier uploadé
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID du fichier
+      responses:
+        '200':
+          description: Informations du fichier
+
+    put:
+      tags:
+        - Uploads
+      summary: Mettre à jour un fichier
+      description: Met à jour les métadonnées d'un fichier
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID du fichier
+      responses:
+        '200':
+          description: Fichier mis à jour
+
+    delete:
+      tags:
+        - Uploads
+      summary: Supprimer un fichier
+      description: Supprime un fichier uploadé
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID du fichier
+      responses:
+        '200':
+          description: Fichier supprimé
+
+  /upload/{id}/{filename}:
+    get:
+      tags:
+        - Uploads
+      summary: Télécharger un fichier
+      description: Télécharge un fichier uploadé
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de l'utilisateur propriétaire
+        - name: filename
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Nom du fichier
+      responses:
+        '200':
+          description: Fichier téléchargé
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+
+  /view/{id}/{filename}:
+    get:
+      tags:
+        - Uploads
+      summary: Visualiser un fichier
+      description: Affiche un fichier uploadé dans le navigateur (sans JWT requis)
+      security: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de l'utilisateur propriétaire
+        - name: filename
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Nom du fichier
+      responses:
+        '200':
+          description: Fichier affiché
