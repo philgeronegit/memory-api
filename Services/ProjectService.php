@@ -84,7 +84,7 @@ class ProjectService extends BaseService
             $this->throwValidationError('Project not found');
         }
 
-        $canUpdate = $this->authorizationService->canModify($user, $existingProject->id_user);
+        $canUpdate = $this->authorizationService->canModify($user, $user->id_user);
 
         if (!$canUpdate) {
             $this->authorizationService->logAuthorizationFailure(
@@ -123,7 +123,7 @@ class ProjectService extends BaseService
             $this->throwValidationError('Project not found');
         }
 
-        $canDelete = $this->authorizationService->canModify($user, $existingProject->id_user);
+        $canDelete = $this->authorizationService->canModify($user, $user->id_user);
 
         if (!$canDelete) {
             $this->authorizationService->logAuthorizationFailure(
@@ -166,7 +166,7 @@ class ProjectService extends BaseService
             $this->throwValidationError('Project not found');
         }
 
-        $canManage = $this->authorizationService->canModify($user, $project->id_user);
+        $canManage = $this->authorizationService->canModify($user, $user->id_user);
 
         if (!$canManage) {
             $this->authorizationService->logAuthorizationFailure(
@@ -209,7 +209,7 @@ class ProjectService extends BaseService
             $this->throwValidationError('Project not found');
         }
 
-        $canManage = $this->authorizationService->canModify($user, $project->id_user);
+        $canManage = $this->authorizationService->canModify($user, $user->id_user);
 
         if (!$canManage) {
             $this->authorizationService->logAuthorizationFailure(
