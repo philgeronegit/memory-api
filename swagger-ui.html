@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory API - Documentation Swagger</title>
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.10.5/swagger-ui.css">
+    <style>
+        html {
+            box-sizing: border-box;
+            overflow: -moz-scrollbars-vertical;
+            overflow-y: scroll;
+        }
+
+        *,
+        *:before,
+        *:after {
+            box-sizing: inherit;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        .topbar {
+            background-color: #1e3a8a;
+            padding: 20px 0;
+        }
+
+        .topbar-wrapper {
+            max-width: 1460px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .topbar-wrapper h1 {
+            color: white;
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .topbar-wrapper p {
+            color: #cbd5e1;
+            margin: 8px 0 0 0;
+            font-size: 14px;
+        }
+
+        #swagger-ui {
+            max-width: 1460px;
+            margin: 0 auto;
+        }
+
+        .swagger-ui .topbar {
+            display: none;
+        }
+
+        .info-container {
+            max-width: 1460px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .info-box {
+            background-color: #f1f5f9;
+            border-left: 4px solid #1e3a8a;
+            padding: 20px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .info-box h3 {
+            margin-top: 0;
+            color: #1e3a8a;
+        }
+
+        .info-box code {
+            background-color: #e2e8f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .info-box pre {
+            background-color: #1e293b;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+
+        .info-box pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <div class="topbar-wrapper">
+            <h1>📝 Memory API - Documentation</h1>
+            <p>API RESTful pour la gestion de notes avec authentification JWT</p>
+        </div>
+    </div>
+
+    <div class="info-container">
+        <div class="info-box">
+            <h3>🔐 Authentification</h3>
+            <p>Pour utiliser l'API, vous devez d'abord vous authentifier :</p>
+            <ol>
+                <li>Utilisez l'endpoint <code>POST /memory/login</code> avec vos identifiants</li>
+                <li>Récupérez le token JWT dans la réponse</li>
+                <li>Cliquez sur le bouton <strong>"Authorize"</strong> ci-dessous et entrez : <code>Bearer {votre-token}</code></li>
+                <li>Vous pouvez maintenant tester tous les endpoints protégés</li>
+            </ol>
+            <p><strong>Exemple de requête de login :</strong></p>
+            <pre><code>curl -X POST "http://localhost:8000/memory/login" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "votre-username",
+    "password": "votre-mot-de-passe"
+  }'</code></pre>
+        </div>
+
+        <div class="info-box">
+            <h3>🚀 Serveurs disponibles</h3>
+            <ul>
+                <li><strong>Développement local :</strong> <code>http://localhost:8000/memory</code></li>
+                <li><strong>WAMP local :</strong> <code>http://localhost/memory</code></li>
+            </ul>
+        </div>
+
+        <div class="info-box">
+            <h3>📚 Ressources principales</h3>
+            <ul>
+                <li><strong>Users</strong> - Gestion des utilisateurs et de leurs profils</li>
+                <li><strong>Notes</strong> - Création, modification et partage de notes</li>
+                <li><strong>Projects</strong> - Organisation des notes par projets</li>
+                <li><strong>Tasks</strong> - Gestion des tâches avec système Kanban</li>
+                <li><strong>Comments</strong> - Commentaires sur les notes</li>
+                <li><strong>Tags</strong> - Classification des notes par tags</li>
+                <li><strong>Uploads</strong> - Gestion des fichiers uploadés</li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="swagger-ui"></div>
+
+    <script src="https://unpkg.com/swagger-ui-dist@5.10.5/swagger-ui-bundle.js"></script>
+    <script src="https://unpkg.com/swagger-ui-dist@5.10.5/swagger-ui-standalone-preset.js"></script>
+    <script>
+        window.onload = function() {
+            // Détecter l'URL de base pour charger le fichier OpenAPI
+            const baseUrl = window.location.origin + window.location.pathname.replace('swagger-ui.html', '');
+
+            window.ui = SwaggerUIBundle({
+                url: baseUrl + "openapi.yaml",
+                dom_id: '#swagger-ui',
+                deepLinking: true,
+                presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIStandalonePreset
+                ],
+                plugins: [
+                    SwaggerUIBundle.plugins.DownloadUrl
+                ],
+                layout: "StandaloneLayout",
+                defaultModelsExpandDepth: 1,
+                defaultModelExpandDepth: 1,
+                docExpansion: "list",
+                filter: true,
+                showRequestHeaders: true,
+                tryItOutEnabled: true,
+                persistAuthorization: true,
+                syntaxHighlight: {
+                    activate: true,
+                    theme: "monokai"
+                },
+                requestInterceptor: (request) => {
+                    // Log des requêtes pour debug
+                    console.log('Request:', request);
+                    return request;
+                },
+                responseInterceptor: (response) => {
+                    // Log des réponses pour debug
+                    console.log('Response:', response);
+                    return response;
+                }
+            });
+        };
+    </script>
+</body>
+</html>
