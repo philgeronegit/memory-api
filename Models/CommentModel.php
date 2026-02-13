@@ -119,7 +119,7 @@ class CommentModel extends Database implements IModel
     $user_id = $paramsArray['user_id'];
 
     $query = $this->baseQuery . <<<SQL
-    WHERE id_comment = ?
+    WHERE c.id_comment = ?
     SQL;
     $comment = $this->selectOne($query, ["i", $id]);
 
